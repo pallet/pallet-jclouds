@@ -11,8 +11,6 @@
    [pallet.utils :as utils]
    [pallet.execute :as execute]
    [clojure.tools.logging :as logging])
-  (:use
-   [slingshot.slingshot :only [throw+]])
   (:import
    [org.jclouds.compute.domain.internal HardwareImpl ImageImpl NodeMetadataImpl]
    org.jclouds.compute.util.ComputeServiceUtils
@@ -25,6 +23,12 @@
    org.jclouds.io.Payload
    org.jclouds.scriptbuilder.domain.Statement
    com.google.common.base.Predicate))
+
+;; slingshot version compatability
+(try
+  (use '[slingshot.slingshot :only [throw+]])
+  (catch Exception _
+    (use '[slingshot.core :only [throw+]])))
 
 ;;; Meta
 (defn supported-providers []

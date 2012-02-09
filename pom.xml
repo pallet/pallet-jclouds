@@ -3,9 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.cloudhoist</groupId>
-    <artifactId>pallet-pom</artifactId>
-    <version>0.7.1-SNAPSHOT</version>
-    <relativePath>../pallet-pom/pom.xml</relativePath>
+    <artifactId>parent-pom</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
   </parent>
   <groupId>org.cloudhoist</groupId>
   <artifactId>pallet-jclouds</artifactId>
@@ -32,40 +31,15 @@
   </scm>
 
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
-    <resources>
-      <resource>
-        <directory>resources</directory>
-        <excludes>
-          <exclude>filtered/*</exclude>
-        </excludes>
-      </resource>
-      <resource>
-        <directory>resources/filtered</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
-    <testResources>
-      <testResource>
-        <directory>test-resources</directory>
-      </testResource>
-    </testResources>
     <plugins>
       <plugin>
         <groupId>org.cloudhoist.plugin</groupId>
         <artifactId>zi</artifactId>
-        <dependencies>
-          <dependency>
-            <groupId>ritz</groupId>
-            <artifactId>ritz</artifactId>
-            <version>${ritz.version}</version>
-          </dependency>
-        </dependencies>
         <configuration>
           <codoxTargetDirectory>doc/api/${pallet-jclouds.doc.version}</codoxTargetDirectory>
           <codoxApiVersion>${pallet-jclouds.doc.version}</codoxApiVersion>
           <codoxWriter>codox-md.writer/write-docs</codoxWriter>
+          <excludeTestNamespacesMatching>pallet.*jclouds.*-0-.*</excludeTestNamespacesMatching>
         </configuration>
       </plugin>
       <plugin>
@@ -200,9 +174,10 @@
   </repositories>
 
   <properties>
+    <zi.version>0.4.4</zi.version>
     <jclouds.version>1.2.1</jclouds.version>
-    <pallet.version>0.7.0-SNAPSHOT</pallet.version>
-    <pallet-jclouds.doc.version>0.1</pallet-jclouds.doc.version>
+    <pallet.version>0.6.8-SNAPSHOT</pallet.version>
+    <pallet-jclouds.doc.version>1.2</pallet-jclouds.doc.version>
   </properties>
 
 </project>
