@@ -58,13 +58,13 @@
     <dependency>
       <groupId>org.cloudhoist</groupId>
       <artifactId>pallet</artifactId>
-      <version>${pallet.version}</version>
+      <version>0.7.0-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.cloudhoist</groupId>
       <artifactId>pallet</artifactId>
-      <version>${pallet.version}</version>
+      <version>0.7.0-SNAPSHOT</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>

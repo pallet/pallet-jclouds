@@ -26,6 +26,14 @@ Pallet-jclouds is distributed as a jar, and is available in the
 
 Installation is with maven or your favourite maven repository aware build tool.
 
+### Latest versions
+
+jclouds 1.2.x
+: pallet-jclouds-1.2.0-alpha1
+
+jclouds 1.3.x
+: pallet-jclouds-1.3.0-alpha.1
+
 ### lein project.clj
 
 ```clojure
