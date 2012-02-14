@@ -28,7 +28,7 @@
   (:import [org.jclouds.compute.domain NodeState OperatingSystem OsFamily]))
 
 ;; Allow running against other compute services if required
-(def *compute-service* ["stub" "" "" ])
+(def ^{:dynamic true} *compute-service* ["stub" "" "" ])
 
 (use-fixtures
  :each

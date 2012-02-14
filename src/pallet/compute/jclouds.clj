@@ -361,7 +361,7 @@
                     options)
           options (if (not (:run-script options))
                     (if init-script
-                      (assoc options :run-script (.getBytes init-script))
+                      (assoc options :run-script init-script)
                       options)
                     options)]
       (jclouds/build-template compute options))))
@@ -382,15 +382,6 @@
   ;;                     (.createNodesInGroup compute group count template))
   ;; (createNodesInGroup [_ group count]
   ;;                     (.createNodesInGroup compute group count))
-  (^java.util.Set runNodesWithTag
-    [_ ^String group ^int count ^Template template]
-    (.createNodesInGroup compute group count template))
-  (^java.util.Set runNodesWithTag
-    [_ ^String group ^int count ^TemplateOptions template-options]
-    (.createNodesInGroup compute group count template-options))
-  (^java.util.Set runNodesWithTag
-    [_ ^String group ^int count]
-    (.createNodesInGroup compute group count))
   (resumeNode [_ id] (.resumeNode compute id))
   (resumeNodesMatching [_ predicate] (.resumeNodesMatching compute predicate))
   (suspendNode [_ id] (.suspendNode compute id))
@@ -401,23 +392,17 @@
   (listNodesDetailsMatching [_ predicate]
     (.listNodesDetailsMatching compute predicate))
   (^java.util.Map runScriptOnNodesMatching
-    [_ ^Predicate predicate ^Payload script]
+    [_ ^Predicate predicate ^String script]
     (.runScriptOnNodesMatching compute predicate script))
   (^java.util.Map runScriptOnNodesMatching
-    [_ ^Predicate predicate ^Payload script ^RunScriptOptions options]
+    [_ ^Predicate predicate ^Statement script]
+    (.runScriptOnNodesMatching compute predicate script))
+  (^java.util.Map runScriptOnNodesMatching
+    [_ ^Predicate predicate ^String script ^RunScriptOptions options]
     (.runScriptOnNodesMatching compute predicate script options))
-  ;; (^java.util.Map runScriptOnNodesMatching
-  ;;  [_ ^Predicate predicate ^String script]
-  ;;  (.runScriptOnNodesMatching compute predicate script))
-  ;; (^java.util.Map runScriptOnNodesMatching
-  ;;  [_ ^Predicate predicate ^String script ^RunScriptOptions options]
-  ;;  (.runScriptOnNodesMatching compute predicate script options))
-  ;; (^java.util.Map runScriptOnNodesMatching
-  ;;  [_ ^Predicate predicate ^Statement script]
-  ;;  (.runScriptOnNodesMatching compute predicate script))
-  ;; (^java.util.Map runScriptOnNodesMatching
-  ;;  [_ ^Predicate predicate ^Statement script ^RunScriptOptions options]
-  ;;  (.runScriptOnNodesMatching compute predicate script options))
+  (^java.util.Map runScriptOnNodesMatching
+    [_ ^Predicate predicate ^Statement script ^RunScriptOptions options]
+    (.runScriptOnNodesMatching compute predicate script options))
 
   pallet.compute.ComputeService
   (nodes
