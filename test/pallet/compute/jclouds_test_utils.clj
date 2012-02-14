@@ -4,7 +4,7 @@
    org.jclouds.compute
    pallet.compute))
 
-(def *compute*)
+(def ^{:dynamic true} *compute*)
 
 (defn compute
   "Return the current compute service."
@@ -22,7 +22,7 @@
 (defn purge-compute-service
   "Remove all nodes from the current compute service"
   []
-  (doseq [node (org.jclouds.compute/nodes *compute*)]
+  (doseq [node (pallet.compute/nodes *compute*)]
     (pallet.compute/destroy-node *compute* node)))
 
 (defn clean-compute-service-fixture
