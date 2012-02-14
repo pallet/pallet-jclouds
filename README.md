@@ -30,7 +30,7 @@ Installation is with maven or your favourite maven repository aware build tool.
 
 ```clojure
 :dependencies [[org.cloudhoist/pallet "0.7.0-SNAPSHOT"]
-               [org.cloudhoist/pallet-jclouds "0.1.0-SNAPSHOT"]]
+               [org.cloudhoist/pallet-jclouds "1.2.0-alpha1"]]
 :repositories {"sonatype"
                "http://oss.sonatype.org/content/repositories/releases"
                "sonatype-snapshots"
@@ -49,7 +49,7 @@ Installation is with maven or your favourite maven repository aware build tool.
   <dependency>
     <groupId>org.cloudhoist</groupId>
     <artifactId>pallet-jclouds</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.2.0-alpha1</version>
   </dependency>
 <dependencies>
 
