@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.cloudhoist</groupId>
     <artifactId>parent-pom</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
   </parent>
   <groupId>org.cloudhoist</groupId>
   <artifactId>pallet-jclouds</artifactId>
@@ -35,6 +35,7 @@
       <plugin>
         <groupId>org.cloudhoist.plugin</groupId>
         <artifactId>zi</artifactId>
+        <version>0.4.5</version>
         <configuration>
           <codoxTargetDirectory>doc/api/${pallet-jclouds.doc.version}</codoxTargetDirectory>
           <codoxApiVersion>${pallet-jclouds.doc.version}</codoxApiVersion>
@@ -140,19 +141,6 @@
     </profile>
   </profiles>
 
-  <developers>
-    <developer>
-      <name>Hugo Duncan</name>
-      <id>hugoduncan</id>
-      <email>hugo -at- hugoduncan -dot- org</email>
-      <roles>
-        <role>PMC</role>
-        <role>Developer</role>
-      </roles>
-      <timezone>-5</timezone>
-    </developer>
-  </developers>
-
   <!-- make sure we can find the parent pom -->
   <repositories>
     <repository>
@@ -163,19 +151,11 @@
       <name>Sonatype Nexus Releases</name>
       <url>http://oss.sonatype.org/content/repositories/releases</url>
     </repository>
-    <repository>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <id>sonatype-nexus-snapshots</id>
-      <name>Sonatype Nexus Snapshots</name>
-      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-    </repository>
   </repositories>
 
   <properties>
     <jclouds.version>1.2.1</jclouds.version>
-    <pallet.version>0.6.8-SNAPSHOT</pallet.version>
+    <pallet.version>0.7.0-beta</pallet.version>
     <pallet-jclouds.doc.version>1.2</pallet-jclouds.doc.version>
   </properties>
 

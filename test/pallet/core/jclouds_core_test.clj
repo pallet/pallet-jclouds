@@ -2,6 +2,6 @@
   (:use
    [pallet.core :only [version]]))
 
-(if (.startsWith (version) "0.6")
-  (load "jclouds_core_test_0_6")
-  (load "jclouds_core_test_0_7"))
+(if (.startsWith (version) "0.7")
+  (load "jclouds_core_test_0_7")
+  (load "jclouds_core_test_0_8"))

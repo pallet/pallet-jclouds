@@ -24,7 +24,7 @@
    org.jclouds.scriptbuilder.domain.Statement
    com.google.common.base.Predicate))
 
-;; slingshot version compatability
+;; slingshot version compatibility
 (try
   (use '[slingshot.slingshot :only [throw+]])
   (catch Exception _
