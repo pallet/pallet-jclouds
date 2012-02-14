@@ -1,7 +1,7 @@
 (ns pallet.compute.jclouds
   "jclouds compute service implementation."
   (:require
-   [org.jclouds.compute :as jclouds]
+   [org.jclouds.compute2 :as jclouds]
    [pallet.compute.implementation :as implementation]
    [pallet.compute.jvm :as jvm]
    [pallet.compute :as compute]
@@ -213,7 +213,7 @@
   (primary-ip [node] (first (jclouds/public-ips node)))
   (private-ip [node] (first (jclouds/private-ips node)))
   (is-64bit? [node] (.. node getOperatingSystem is64Bit))
-  (group-name [node] (jclouds/tag node))
+  (group-name [node] (jclouds/group node))
 
   (os-family
     [node]
@@ -456,15 +456,15 @@
                  (filter compute/running?))))]
       (try
         (->>
-         (jclouds/run-nodes
+         (jclouds/create-nodes
+          compute
           (name (:group-name group-spec))
           node-count
           (build-node-template
            compute
            group-spec
            (:public-key-path user)
-           init-script)
-          compute)
+           init-script))
          (map (partial jclouds-node->node service))
          ;; The following is a workaround for terminated nodes.
          ;; See http://code.google.com/p/jclouds/issues/detail?id=501
@@ -475,11 +475,11 @@
   (reboot
     [_ nodes]
     (doseq [node nodes]
-      (jclouds/reboot-node node compute)))
+      (jclouds/reboot-node compute node)))
 
   (boot-if-down
     [_ nodes]
-    (map #(jclouds/reboot-node % compute)
+    (map #(jclouds/reboot-node compute %)
          (filter jclouds/terminated? nodes)))
 
   (shutdown-node
@@ -497,11 +497,13 @@
 
   (destroy-nodes-in-group
     [_ group-name]
-    (jclouds/destroy-nodes-with-tag (name group-name) compute))
+    (jclouds/destroy-nodes-matching
+     compute
+     #(= (jclouds/group %) (name group-name))))
 
   (destroy-node
     [_ node]
-    (jclouds/destroy-node (compute/id node) compute))
+    (jclouds/destroy-node compute (compute/id node)))
 
   (images [_] (jclouds/images compute))
 
@@ -554,7 +556,7 @@
    writer
    (format
     "%14s\t %s %s\n\t\t %s\n\t\t %s\n\t\t public: %s  private: %s"
-    (jclouds/tag node)
+    (jclouds/group node)
     (apply str (interpose "." (map location-string (node-locations node))))
     (let [location (.getLocation node)]
       (when (and location

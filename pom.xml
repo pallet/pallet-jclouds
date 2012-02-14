@@ -155,7 +155,7 @@
 
   <properties>
     <jclouds.version>1.2.1</jclouds.version>
-    <pallet.version>0.7.0-beta</pallet.version>
+    <pallet.version>0.7.0-SNAPSHOT</pallet.version>
     <pallet-jclouds.doc.version>1.2</pallet-jclouds.doc.version>
   </properties>
 

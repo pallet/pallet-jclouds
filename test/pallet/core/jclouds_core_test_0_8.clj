@@ -95,7 +95,7 @@
   (logging/info "lift-destroy-server-test")
   (jclouds-test-utils/purge-compute-service)
   (let [service (jclouds-test-utils/compute)
-        a-node (org.jclouds.compute/create-node "a" (.compute service))
+        a-node (org.jclouds.compute2/create-node (.compute service) "a")
         nodes (compute/nodes service)
         node (first nodes)
         [action seen?] (seen-fn "lift-destroy-server-test")
@@ -117,7 +117,7 @@
   (logging/info "destroy-servers-test")
   (jclouds-test-utils/purge-compute-service)
   (let [service (jclouds-test-utils/compute)
-        a-node (org.jclouds.compute/create-node "a" (.compute service))
+        a-node (org.jclouds.compute2/create-node (.compute service) "a")
         nodes (compute/nodes service)
         node (first nodes)
         servers [{:node node :node-id (keyword (node/id node))}]]
@@ -137,7 +137,7 @@
   (logging/info "lift-destroy-group-test")
   (jclouds-test-utils/purge-compute-service)
   (let [service (jclouds-test-utils/compute)
-        a-node (org.jclouds.compute/create-node "a" (.compute service))
+        a-node (org.jclouds.compute2/create-node (.compute service) "a")
         nodes (compute/nodes service)
         node (first nodes)
         [action seen?] (seen-fn "lift-destroy-group-test")
@@ -187,16 +187,16 @@
 
 (deftest adjust-server-counts-test
   (logging/info "adjust-server-counts-test")
-  (let [build-template org.jclouds.compute/build-template
+  (let [build-template org.jclouds.compute2/build-template
         service (jclouds-test-utils/compute)
         a-node (jclouds/make-node "a" :state NodeState/RUNNING)]
-    (mock/expects [(org.jclouds.compute/run-nodes
-                    [tag n template compute]
+    (mock/expects [(org.jclouds.compute2/create-nodes
+                    [compute tag n template]
                     (mock/once
                      (is (= "a" tag))
                      (is (= 1 n))
                      [a-node]))
-                   (org.jclouds.compute/build-template
+                   (org.jclouds.compute2/build-template
                     [compute & options]
                     (mock/times 2 (apply build-template compute options)))]
                   (let [[_ session] (#'core/adjust-server-counts
@@ -219,13 +219,13 @@
   (logging/info "converge-node-counts-test 2")
   (testing "With a good and a bad node"
     (jclouds-test-utils/purge-compute-service)
-    (let [build-template org.jclouds.compute/build-template
+    (let [build-template org.jclouds.compute2/build-template
           service (jclouds-test-utils/compute)
           a-node (jclouds/make-node "a" :state NodeState/RUNNING)
           b-node (jclouds/make-node "a" :state NodeState/RUNNING)
           c-node (jclouds/make-node "a" :state NodeState/RUNNING)]
-      (mock/expects [(org.jclouds.compute/run-nodes
-                      [tag n template compute]
+      (mock/expects [(org.jclouds.compute2/create-nodes
+                      [compute tag n template]
                       (mock/once
                        (is (= "a" tag))
                        (is (= 3 n))
@@ -236,7 +236,7 @@
                                {}
                                {b-node (Exception.)
                                 c-node (Exception.)}))))
-                     (org.jclouds.compute/build-template
+                     (org.jclouds.compute2/build-template
                       [compute & options]
                       (mock/times 2 (apply build-template compute options)))]
                     (let [[_ session] (#'core/adjust-server-counts
@@ -258,18 +258,18 @@
                              (compute/id (first nodes)))))))))
 
 (deftest parallel-converge-node-counts-test
-  (let [build-template org.jclouds.compute/build-template
+  (let [build-template org.jclouds.compute2/build-template
         service (jclouds-test-utils/compute)
         a-node (jclouds/make-node "a" :state NodeState/RUNNING)]
     (mock/expects [(clojure.core/future-call
                     [f]
                     (mock/once (delay (f)))) ;; delay implements deref
-                   (org.jclouds.compute/run-nodes
-                    [tag n template compute]
+                   (org.jclouds.compute2/create-nodes
+                    [compute tag n template]
                     (mock/once
                      (is (= 1 n))
                      [a-node]))
-                   (org.jclouds.compute/build-template
+                   (org.jclouds.compute2/build-template
                     [compute & options]
                     (mock/times 2 (apply build-template compute options)))]
                   (let [nodes (->
@@ -479,7 +479,7 @@
                            #{"a" "b"}
                            (set (map compute/group-name (:all-nodes session)))))
                       [[] session]))
-                   (org.jclouds.compute/nodes-with-details [_] [na nb nb2])]
+                   (org.jclouds.compute2/nodes-with-details [_] [na nb nb2])]
                   (converge*
                    (test-session
                     {:node-set [(assoc a :count 1) (assoc b :count 1)]
@@ -576,12 +576,12 @@
 (deftest converge-with-failed-nodes-test
   (testing "With only bad nodes"
     (jclouds-test-utils/purge-compute-service)
-    (let [build-template org.jclouds.compute/build-template
+    (let [build-template org.jclouds.compute2/build-template
           service (jclouds-test-utils/compute)]
       (is (zero?
            (count (filter compute/running? (compute/nodes service)))))
-      (mock/expects [(org.jclouds.compute/run-nodes
-                      [tag n template compute]
+      (mock/expects [(org.jclouds.compute2/create-nodes
+                      [compute tag n template]
                       (mock/once
                        (is (= "a" tag))
                        (is (= 2 n))
@@ -597,7 +597,7 @@
                                 (jclouds/make-node
                                  "a" :id "a1" :state NodeState/RUNNING)
                                 (Exception.))))))
-                     (org.jclouds.compute/build-template
+                     (org.jclouds.compute2/build-template
                       [compute & options]
                       (mock/times 2 (apply build-template compute options)))]
                     (is (thrown?
