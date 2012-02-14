@@ -18,7 +18,8 @@
    org.jclouds.compute.options.RunScriptOptions
    org.jclouds.compute.options.TemplateOptions
    [org.jclouds.compute.domain
-    NodeState NodeMetadata Image OperatingSystem OsFamily Hardware Template]
+    NodeState NodeMetadata Image OperatingSystem OsFamily Hardware Template
+    HardwareBuilder NodeMetadataBuilder ImageBuilder OperatingSystemBuilder]
    org.jclouds.domain.Location
    org.jclouds.io.Payload
    org.jclouds.scriptbuilder.domain.Statement
@@ -60,59 +61,65 @@
     :endpoint (keyword (format (str provider ".endpoint")))
     (option-keys key key)))
 
-;;; Node utilities
-(defmacro impl-fns
-  []
-  (let [hw-ctors (.getDeclaredConstructors HardwareImpl)
-        nm-ctors (.getDeclaredConstructors NodeMetadataImpl)
-        ;; jclouds beta-9c introduced tags
-        has-tags (= 11 (count (.getParameterTypes (first hw-ctors))))
-        ;; jclouds 1.1.0 introduced hostname
-        has-hostname (= 18 (count (.getParameterTypes (first nm-ctors))))]
-    `(do
-       (defn hardware-impl
-         [~'provider-id ~'name ~'id ~'location ~'uri ~'user-metadata ~'tags
-          ~'processors ~'ram ~'volumes ~'image-supported-fn]
-         ~(if has-tags
-            '(HardwareImpl.
-              provider-id name id location uri user-metadata tags
-              processors ram volumes image-supported-fn)
-            '(HardwareImpl.
-              provider-id name id location uri user-metadata
-              processors ram volumes image-supported-fn)))
-       (defn node-metadata-impl
-         [~'provider-id ~'name ~'id ~'location ~'uri ~'user-metadata ~'tags
-          ~'group-name ~'hardware ~'image-id ~'os ~'state ~'login-port
-          ~'public-ips ~'private-ips ~'admin-password ~'credentials ~'hostname]
-         ~(if has-hostname
-            '(NodeMetadataImpl.
-              provider-id name id location uri user-metadata tags
-              group-name hardware image-id os state login-port
-              public-ips private-ips admin-password credentials hostname)
-            (if has-tags
-              '(NodeMetadataImpl.
-                provider-id name id location uri user-metadata tags
-                group-name hardware image-id os state login-port
-                public-ips private-ips admin-password credentials)
-              '(NodeMetadataImpl.
-                provider-id name id location uri user-metadata
-                group-name hardware image-id os state login-port
-                public-ips private-ips admin-password credentials))))
-       (defn image-impl
-         [~'provider-id ~'name ~'id ~'location ~'uri ~'user-metadata ~'tags
-          ~'os ~'description ~'version ~'admin-password ~'credentials]
-         ~(if has-tags
-            '(ImageImpl.
-              provider-id name id location uri user-metadata tags
-              os description version admin-password credentials)
-            '(ImageImpl.
-              provider-id name id location uri user-metadata
-              os description version admin-password credentials))))))
+(defn hardware-impl
+  [provider-id name id location uri user-metadata tags processors ram volumes
+   image-supported-fn]
+  (.. (HardwareBuilder.)
+      (providerId provider-id)
+      (name name)
+      (id id)
+      (location location)
+      (uri uri)
+      (userMetadata user-metadata)
+      (tags tags)
+      (processors processors)
+      (ram ram)
+      (volumes volumes)
+      (supportsImage image-supported-fn)
+      build))
 
-(impl-fns)
+(defn node-metadata-impl
+  [provider-id name id location uri user-metadata tags
+   group-name hardware image-id os state login-port
+   public-ips private-ips admin-password credentials hostname]
+  (.. (NodeMetadataBuilder.)
+      (providerId provider-id)
+      (name name)
+      (id id)
+      (location location)
+      (uri uri)
+      (userMetadata user-metadata)
+      (tags tags)
+      (group group-name)
+      (hardware hardware)
+      (imageId image-id)
+      (operatingSystem os)
+      (state state)
+      (loginPort login-port)
+      (publicAddresses public-ips)
+      (privateAddresses private-ips)
+      (adminPassword admin-password)
+      (credentials credentials)
+      (hostname hostname)
+      build))
 
-
-
+(defn image-impl
+  [provider-id name id location uri user-metadata tags
+   os description version admin-password credentials]
+  (.. (ImageBuilder.)
+      (providerId provider-id)
+      (name name)
+      (id id)
+      (location location)
+      (uri uri)
+      (userMetadata user-metadata)
+      (tags tags)
+      (operatingSystem os)
+      (description description)
+      (version version)
+      (adminPassword admin-password)
+      (credentials credentials)
+      build))
 
 (defn make-operating-system
   [{:keys [family name version arch description is-64bit]
@@ -122,7 +129,14 @@
          arch "Some arch"
          description "Desc"
          is-64bit true}}]
-  (OperatingSystem. family name version arch description is-64bit))
+  (.. (OperatingSystemBuilder.)
+      (family family)
+      (name name)
+      (version version)
+      (arch arch)
+      (description description)
+      (is64Bit is-64bit)
+      build))
 
 (def jvm-os-family-map
   {"AIX" OsFamily/AIX
