@@ -19,7 +19,7 @@
    org.jclouds.compute.options.TemplateOptions
    [org.jclouds.compute.domain
     NodeState NodeMetadata Image OperatingSystem OsFamily Hardware Template
-    HardwareBuilder NodeMetadataBuilder ImageBuilder OperatingSystemBuilder]
+    HardwareBuilder NodeMetadataBuilder ImageBuilder]
    org.jclouds.domain.Location
    org.jclouds.io.Payload
    org.jclouds.scriptbuilder.domain.Statement
@@ -129,7 +129,7 @@
          arch "Some arch"
          description "Desc"
          is-64bit true}}]
-  (.. (OperatingSystemBuilder.)
+  (.. (org.jclouds.compute.domain.OperatingSystem$Builder.)
       (family family)
       (name name)
       (version version)
