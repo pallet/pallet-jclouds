@@ -594,13 +594,15 @@
   (logging/debugf "extensions %s" (pr-str extensions))
   (let [options (dissoc
                  options
-                 :identity :credential :extensions :blobstore :environment)]
+                 :identity :credential :extensions :blobstore :environment)
+        options (interleave
+                 (map #(option-key provider %) (keys options))
+                 (vals options))]
+    (logging/debugf "options %s" (pr-str (vec options)))
     (JcloudsService.
      (apply
       jclouds/compute-service
       (name provider) identity credential
       :extensions extensions
-      (interleave
-       (map #(option-key provider %) (keys options))
-       (vals options)))
+      options)
      environment)))
