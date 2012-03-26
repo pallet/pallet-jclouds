@@ -163,7 +163,7 @@
 
   <properties>
     <zi.version>0.4.5</zi.version>
-    <jclouds.version>1.4.0-rc.1</jclouds.version>
+    <jclouds.version>1.4.0</jclouds.version>
     <pallet.version>0.7.0-SNAPSHOT</pallet.version>
     <pallet-jclouds.doc.version>1.4</pallet-jclouds.doc.version>
   </properties>
