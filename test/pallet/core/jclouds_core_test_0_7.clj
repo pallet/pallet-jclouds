@@ -183,7 +183,9 @@
   (let [service (jclouds-test-utils/compute)]
     (is (= 0 (count (running-nodes (compute/nodes service)))))
     (let [session (#'core/create-servers
-                   {:groups [(core/group-spec :a :delta-count 1)]
+                   {:groups [(core/group-spec
+                              :a :delta-count 1
+                              :node-spec {:image {:os-family :ubuntu}})]
 
                     :environment (serial-environment-no-ssh)})]
       (is (= 1 (count (running-nodes (compute/nodes service)))))
@@ -204,12 +206,13 @@
                      [a-node]))
                    (org.jclouds.compute2/build-template
                     [compute & options]
-                    (mock/times 2 (apply build-template compute options)))]
+                    (mock/once (apply build-template compute options)))]
                   (let [nodes (->
                                (#'core/adjust-server-counts
                                 {:groups [(test-utils/group
                                            :a :count 1 :delta-count 1
-
+                                           :node-spec {:image
+                                                       {:os-family :ubuntu}}
                                            :servers [])]
                                  :environment
                                  {:compute service
@@ -248,18 +251,19 @@
                                 c-node (Exception.)}))))
                      (org.jclouds.compute2/build-template
                       [compute & options]
-                      (mock/times 2 (apply build-template compute options)))]
+                      (mock/once (apply build-template compute options)))]
                     (let [nodes (->
                                  (#'core/adjust-server-counts
                                   {:groups [(test-utils/group
                                              :a :count 3 :delta-count 3
+                                             :node-spec {:image
+                                                         {:os-family :ubuntu}}
                                              :servers [])]
                                    :environment
                                    {:compute service
                                     :algorithms
                                     (assoc core/default-algorithms
                                       :converge-fn
-
                                       #'pallet.core/serial-adjust-node-counts
                                       :lift-fn #'pallet.core/sequential-lift)}})
                                  :all-nodes)]
@@ -282,11 +286,14 @@
                      [a-node]))
                    (org.jclouds.compute2/build-template
                     [compute & options]
-                    (mock/times 2 (apply build-template compute options)))]
+                    (mock/once (apply build-template compute options)))]
                   (let [nodes (->
 
                                (#'core/adjust-server-counts
-                                {:groups [(test-utils/group :a :delta-count 1)]
+                                {:groups [(test-utils/group
+                                           :a :delta-count 1
+                                           :node-spec {:image
+                                                       {:os-family :ubuntu}})]
                                  :environment
                                  {:compute service
                                   :algorithms
@@ -452,7 +459,8 @@
   (let [a (jclouds/make-node "a")
         session (#'core/create-nodes
                  {:compute (jclouds-test-utils/compute)
-                  :group (group-spec :a :servers [{:node a}] :delta-count 1)
+                  :group (group-spec :a :servers [{:node a}] :delta-count 1
+                                     :node-spec {:image {:os-family :ubuntu}})
                   :target-id :a
                   :environment {:algorithms core/default-algorithms}})]
     (is (seq (:new-nodes session)))
@@ -534,10 +542,10 @@
 
 (deftest converge-test
   (jclouds-test-utils/purge-compute-service)
-
   (let [hi (action/bash-action [session] "Hi")
         id "c-t"
-        node (group-spec "c-t" :phases {:configure hi})
+        node (group-spec "c-t" :phases {:configure hi}
+                         :node-spec {:image {:os-family :ubuntu}})
         session (converge {node 2}
                           :compute (jclouds-test-utils/compute)
                           :middleware [core/translate-action-plan
@@ -623,11 +631,12 @@
                                 (Exception.))))))
                      (org.jclouds.compute2/build-template
                       [compute & options]
-                      (mock/times 2 (apply build-template compute options)))]
+                      (mock/once (apply build-template compute options)))]
                     (is-thrown-with-msg-slingshot?
                       #"No additional nodes could be started"
                       (core/converge
-                       {(core/group-spec :a) 2}
+                       {(core/group-spec
+                         :a :node-spec {:image {:os-family :ubuntu}}) 2}
                        :compute service
                        :environment
                        {:algorithms

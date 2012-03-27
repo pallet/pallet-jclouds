@@ -53,9 +53,10 @@
   "Default exec function - replies to ./runscript status by returning success"
   [cmd]
   (merge
-   {:exit 0 :err "stderr" :out "stdout"}
+   {:exit 0 :err nil :out nil}
    (condp = cmd
-       "./bootstrap status" (bootstrap-success-return-const)
+       "/tmp/init-bootstrap status" (bootstrap-success-return-const)
+       "/tmp/init-bootstrap exitstatus" {:exit 0 :err "" :out "0"}
        {})))
 
 (deftype NoOpClient
