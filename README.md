@@ -32,17 +32,18 @@ jclouds 1.2.x
 : pallet-jclouds-1.2.0-alpha1
 
 jclouds 1.3.x
-: pallet-jclouds-1.3.0-alpha.1
+: pallet-jclouds-1.3.0-beta.1
+
+jclouds 1.4.x
+: pallet-jclouds-1.4.0-beta.1
 
 ### lein project.clj
 
 ```clojure
-:dependencies [[org.cloudhoist/pallet "0.7.0-SNAPSHOT"]
-               [org.cloudhoist/pallet-jclouds "1.2.0-alpha1"]]
+:dependencies [[org.cloudhoist/pallet "0.7.0"]
+               [org.cloudhoist/pallet-jclouds "1.3.0-beta.1"]]
 :repositories {"sonatype"
-               "http://oss.sonatype.org/content/repositories/releases"
-               "sonatype-snapshots"
-               "http://oss.sonatype.org/content/repositories/snapshots"}
+               "http://oss.sonatype.org/content/repositories/releases"}
 ```
 
 ### maven pom.xml
@@ -52,12 +53,12 @@ jclouds 1.3.x
   <dependency>
     <groupId>org.cloudhoist</groupId>
     <artifactId>pallet</artifactId>
-    <version>0.7.0-SNAPSHOT</version>
+    <version>0.7.0</version>
   </dependency>
   <dependency>
     <groupId>org.cloudhoist</groupId>
     <artifactId>pallet-jclouds</artifactId>
-    <version>1.2.0-alpha1</version>
+    <version>1.3.0-beta.1</version>
   </dependency>
 <dependencies>
 
@@ -65,10 +66,6 @@ jclouds 1.3.x
   <repository>
     <id>sonatype</id>
     <url>http://oss.sonatype.org/content/repositories/releases</url>
-  </repository>
-  <repository>
-    <id>sonatype-snapshots</id>
-    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
   </repository>
 </repositories>
 ```
