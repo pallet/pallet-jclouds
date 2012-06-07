@@ -49,11 +49,11 @@
     </encoder>
   </appender>
 
-  <logger name="jclouds.headers" level="DEBUG">
+  <logger name="jclouds.headers" level="INFO">
     <appender-ref ref="WIREFILE" />
   </logger>
 
-  <logger name="jclouds.wire" level="DEBUG">
+  <logger name="jclouds.wire" level="INFO">
     <appender-ref ref="WIREFILE" />
   </logger>
 

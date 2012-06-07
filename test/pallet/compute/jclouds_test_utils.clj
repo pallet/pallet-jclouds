@@ -1,7 +1,6 @@
 (ns pallet.compute.jclouds-test-utils
   "Test utils for jclouds"
   (:require
-   org.jclouds.compute
    pallet.compute))
 
 (def ^{:dynamic true} *compute*)
