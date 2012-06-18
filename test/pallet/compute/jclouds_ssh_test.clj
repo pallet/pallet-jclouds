@@ -6,8 +6,8 @@
    org.jclouds.domain.LoginCredentials
    org.jclouds.compute.domain.ExecResponse
    org.jclouds.io.Payload
-   org.jclouds.net.IPSocket
-   org.jclouds.ssh.SshClient))
+   org.jclouds.ssh.SshClient
+   com.google.common.net.HostAndPort))
 
 (defn jclouds-features
   []
@@ -83,11 +83,11 @@
   org.jclouds.ssh.SshClient$Factory
   (^org.jclouds.ssh.SshClient
     create
-    [_ ^IPSocket socket ^Credentials credentials]
+    [_ ^HostAndPort socket ^Credentials credentials]
     (factory-fn socket (.identity credentials) (.credential credentials)))
   (^org.jclouds.ssh.SshClient
     create
-    [_ ^IPSocket socket ^LoginCredentials credentials]
+    [_ ^HostAndPort socket ^LoginCredentials credentials]
     (factory-fn socket (.identity credentials) (.credential credentials))))
 
 (deftype Module
