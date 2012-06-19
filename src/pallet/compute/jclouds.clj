@@ -263,6 +263,7 @@
   (getImageId [_] (.getImageId node))
   (getOperatingSystem [_] (.getOperatingSystem node))
   (getState [_] (.getState node))
+  (getStatus [_] (.getStatus node))
   (getLoginPort [_] (.getLoginPort node))
   (getAdminPassword [_] (.getAdminPassword node))
   (getCredentials [_] (.getCredentials node))
