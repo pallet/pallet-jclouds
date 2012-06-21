@@ -169,7 +169,7 @@
   <properties>
     <clojure.version>1.3.0</clojure.version>
     <zi.version>0.4.5</zi.version>
-    <jclouds.version>1.4.0</jclouds.version>
+    <jclouds.version>1.4.1</jclouds.version>
     <pallet.version>0.7.0</pallet.version>
     <pallet-jclouds.doc.version>1.4</pallet-jclouds.doc.version>
   </properties>
