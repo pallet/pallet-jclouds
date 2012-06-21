@@ -15,12 +15,14 @@
         (try
           (Class/forName "org.jclouds.domain.LoginCredentials")
           true
+          (logging/info "jclouds has-login-credentials")
           (catch ClassNotFoundException _))
         bootstrap-expects-zero-response
         (try
           (Class/forName
            "org.jclouds.compute.callables.BlockUntilInitScriptStatusIsZeroThenReturnOutput")
           true
+          (logging/info "jclouds bootstrap-expects-zero-response")
           (catch ClassNotFoundException _))]
     (hash-map
      :has-login-credentials has-login-credentials
