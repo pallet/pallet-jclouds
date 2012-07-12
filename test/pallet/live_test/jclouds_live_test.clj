@@ -32,14 +32,14 @@
   (let [specs {:repo {:image {:os-family :ubuntu}
                       :count 1
                       :phases {}}}
-        service (compute/compute-service "stub" "" "")]
+        service (compute/compute-service "stub" :identity "x" :credential "x")]
     (is (= 1
            (count
             (live-test/build-nodes
              service (live-test/node-types specs) specs [:configure]))))))
 
 (deftest live-test-test
-  (live-test/set-service! (compute/compute-service "stub" "" ""))
+  (live-test/set-service! (compute/compute-service "stub" :identity "x" :credential "x"))
   (live-test/with-live-tests
     (doseq [os-family [:centos]]
       (live-test/test-nodes

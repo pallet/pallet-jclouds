@@ -11,11 +11,12 @@
 
 (defn compute-service-fixture
   "Use jcloud's stub compute service, or some other if specified"
-  ([] (compute-service-fixture ["stub" "" ""]))
+  ([] (compute-service-fixture ["stub" "x" "x"]))
   ([[service account key] & options]
      (fn [f]
        (binding [*compute* (apply pallet.compute/compute-service
-                                  service account key options)]
+                                  service :identity account :credential key
+                                  options)]
          (f)))))
 
 (defn purge-compute-service

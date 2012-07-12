@@ -20,7 +20,7 @@
    [org.jclouds.compute.domain
     NodeState NodeMetadata Image OperatingSystem OsFamily Hardware Template
     HardwareBuilder NodeMetadataBuilder ImageBuilder]
-   org.jclouds.domain.Location
+   [org.jclouds.domain Location LoginCredentials]
    org.jclouds.io.Payload
    org.jclouds.scriptbuilder.domain.Statement
    com.google.common.base.Predicate))
@@ -82,26 +82,33 @@
   [provider-id name id location uri user-metadata tags
    group-name hardware image-id os state login-port
    public-ips private-ips admin-password credentials hostname]
-  (.. (NodeMetadataBuilder.)
-      (providerId provider-id)
-      (name name)
-      (id id)
-      (location location)
-      (uri uri)
-      (userMetadata user-metadata)
-      (tags tags)
-      (group group-name)
-      (hardware hardware)
-      (imageId image-id)
-      (operatingSystem os)
-      (state state)
-      (loginPort login-port)
-      (publicAddresses public-ips)
-      (privateAddresses private-ips)
-      (adminPassword admin-password)
-      (credentials credentials)
-      (hostname hostname)
-      build))
+  (let [credentials (if admin-password
+                      (..
+                       (if credentials
+                         (LoginCredentials/builder credentials)
+                         (LoginCredentials/builder))
+                       (password admin-password)
+                       build)
+                      credentials)]
+    (.. (NodeMetadataBuilder.)
+        (providerId provider-id)
+        (name name)
+        (id id)
+        (location location)
+        (uri uri)
+        (userMetadata user-metadata)
+        (tags tags)
+        (group group-name)
+        (hardware hardware)
+        (imageId image-id)
+        (operatingSystem os)
+        (state state)
+        (loginPort login-port)
+        (publicAddresses public-ips)
+        (privateAddresses private-ips)
+        (credentials credentials)
+        (hostname hostname)
+        build)))
 
 (defn image-impl
   [provider-id name id location uri user-metadata tags

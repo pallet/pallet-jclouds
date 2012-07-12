@@ -28,7 +28,7 @@
   (:import [org.jclouds.compute.domain NodeState OperatingSystem OsFamily]))
 
 ;; Allow running against other compute services if required
-(def ^{:dynamic true} *compute-service* ["stub" "" "" ])
+(def ^{:dynamic true} *compute-service* ["stub" "x" "x" ])
 
 (use-fixtures
  :each
@@ -98,7 +98,7 @@
   (logging/info "lift-destroy-server-test")
   (jclouds-test-utils/purge-compute-service)
   (let [service (jclouds-test-utils/compute)
-        a-node (org.jclouds.compute2/create-node (.compute service) "a")
+        a-node (org.jclouds.compute2/create-node (.compute service) "abcdef")
         nodes (compute/nodes service)
         node (first nodes)
         [action seen?] (seen-fn "lift-destroy-server-test")
@@ -120,14 +120,14 @@
   (logging/info "destroy-servers-test")
   (jclouds-test-utils/purge-compute-service)
   (let [service (jclouds-test-utils/compute)
-        a-node (org.jclouds.compute2/create-node (.compute service) "a")
+        a-node (org.jclouds.compute2/create-node (.compute service) "abcdef")
         nodes (compute/nodes service)
         node (first nodes)
         servers [{:node node :node-id (keyword (node/id node))}]]
     (is (= 1 (count nodes)))
     (let [session (#'core/destroy-servers
                    {:groups [(core/group-spec
-                              :a
+                              :abcdef
                               :servers servers
                               :servers-to-remove servers
                               :remove-group true)]
@@ -141,7 +141,7 @@
   (logging/info "lift-destroy-group-test")
   (jclouds-test-utils/purge-compute-service)
   (let [service (jclouds-test-utils/compute)
-        a-node (org.jclouds.compute2/create-node (.compute service) "a")
+        a-node (org.jclouds.compute2/create-node (.compute service) "abcdef")
         nodes (compute/nodes service)
         node (first nodes)
         [action seen?] (seen-fn "lift-destroy-group-test")
@@ -184,7 +184,7 @@
     (is (= 0 (count (running-nodes (compute/nodes service)))))
     (let [session (#'core/create-servers
                    {:groups [(core/group-spec
-                              :a :delta-count 1
+                              :abc :delta-count 1
                               :node-spec {:image {:os-family :ubuntu}})]
 
                     :environment (serial-environment-no-ssh)})]
@@ -196,7 +196,7 @@
   (logging/info "adjust-server-counts-test")
   (let [build-template org.jclouds.compute2/build-template
         service (jclouds-test-utils/compute)
-        a-node (jclouds/make-node "a"
+        a-node (jclouds/make-node "abcdef"
                                   :state NodeState/RUNNING)]
     (mock/expects [(org.jclouds.compute2/create-nodes
                     [compute tag n template]
@@ -230,11 +230,11 @@
     (jclouds-test-utils/purge-compute-service)
     (let [build-template org.jclouds.compute2/build-template
           service (jclouds-test-utils/compute)
-          a-node (jclouds/make-node "a"
+          a-node (jclouds/make-node "abcdef"
                                     :state NodeState/RUNNING)
-          b-node (jclouds/make-node "a"
+          b-node (jclouds/make-node "abcdef"
                                     :state NodeState/RUNNING)
-          c-node (jclouds/make-node "a"
+          c-node (jclouds/make-node "abcdef"
                                     :state NodeState/RUNNING)]
       (mock/expects [(org.jclouds.compute2/create-nodes
 
@@ -243,7 +243,7 @@
                        (is (= "a" tag))
                        (is (= 3 n))
                        (throw (org.jclouds.compute.RunNodesException.
-                               "a" 2
+                               "abcdef" 2
                                template
                                #{a-node}
                                {}
@@ -275,7 +275,7 @@
 (deftest parallel-converge-node-counts-test
   (let [build-template org.jclouds.compute2/build-template
         service (jclouds-test-utils/compute)
-        a-node (jclouds/make-node "a" :state NodeState/RUNNING)]
+        a-node (jclouds/make-node "abcdef" :state NodeState/RUNNING)]
     (mock/expects [(clojure.core/future-call
                     [f]
                     (mock/once (delay (f)))) ;; delay implements deref
@@ -307,10 +307,10 @@
                     (is (= (compute/id a-node) (compute/id (first nodes))))))))
 
 (deftest nodes-in-set-test
-  (let [a (group-spec "a" :image {:os-family :ubuntu})
-        b (group-spec "b" :image {:os-family :ubuntu})
-        a-node (jclouds/make-node "a")
-        b-node (jclouds/make-node "b")]
+  (let [a (group-spec "abcdef" :image {:os-family :ubuntu})
+        b (group-spec "bcdefa" :image {:os-family :ubuntu})
+        a-node (jclouds/make-node "abcdef")
+        b-node (jclouds/make-node "bcdefa")]
     (is (= {a #{a-node}}
            (#'core/nodes-in-set {a a-node} nil nil)))
     (is (= {a #{a-node b-node}}
@@ -318,12 +318,12 @@
     (is (= {a #{a-node} b #{b-node}}
 
            (#'core/nodes-in-set {a #{a-node} b #{b-node}} nil nil))))
-  (let [a (group-spec "a" :image {:os-family :ubuntu})
-        b (group-spec "b" :image {:os-family :ubuntu})
-        pa (group-spec "pa" :image {:os-family :ubuntu})
-        pb (group-spec "pb" :image {:os-family :ubuntu})
-        a-node (jclouds/make-node "a")
-        b-node (jclouds/make-node "b")]
+  (let [a (group-spec "abcdef" :image {:os-family :ubuntu})
+        b (group-spec "bcdefa" :image {:os-family :ubuntu})
+        pa (group-spec "pabcdef" :image {:os-family :ubuntu})
+        pb (group-spec "pbcdefa" :image {:os-family :ubuntu})
+        a-node (jclouds/make-node "abcdef")
+        b-node (jclouds/make-node "bcdefa")]
     (is (= {pa #{a-node}}
            (#'core/nodes-in-set {a a-node} "p" nil)))
     (is (= {pa #{a-node b-node}}
@@ -334,10 +334,10 @@
            (#'core/nodes-in-set {a a-node b b-node} "p" nil)))))
 
 (deftest node-in-types?-test
-  (let [a (group-spec "a")
-        b (group-spec "b")]
-    (is (#'core/node-in-types? [a b] (jclouds/make-node "a")))
-    (is (not (#'core/node-in-types? [a b] (jclouds/make-node "c"))))))
+  (let [a (group-spec "abcdef")
+        b (group-spec "bcdefa")]
+    (is (#'core/node-in-types? [a b] (jclouds/make-node "abcdef")))
+    (is (not (#'core/node-in-types? [a b] (jclouds/make-node "cdefab"))))))
 
 (def test-component
   (action/bash-action [session arg] (str arg)))
@@ -376,11 +376,11 @@
     (is (seeny?))))
 
 (deftest lift*-nodes-binding-test
-  (let [a (group-spec "a")
-        b (group-spec "b")
-        na (jclouds/make-node "a")
-        nb (jclouds/make-node "b")
-        nc (jclouds/make-node "c" :state NodeState/TERMINATED)]
+  (let [a (group-spec "abcdef")
+        b (group-spec "bcdefa")
+        na (jclouds/make-node "abcdef")
+        nb (jclouds/make-node "bcdefa")
+        nc (jclouds/make-node "cdefab" :state NodeState/TERMINATED)]
     (mock/expects [(sequential-apply-phase
                     [session]
                     (do
@@ -429,11 +429,11 @@
 
 ;; need to mock protocol function :
 ;; (deftest lift-multiple-test
-;;   (let [a (group-spec "a")
-;;         b (group-spec "b")
-;;         na (jclouds/make-node "a")
-;;         nb (jclouds/make-node "b")
-;;         nc (jclouds/make-node "c")]
+;;   (let [a (group-spec "abcdef")
+;;         b (group-spec "bcdefa")
+;;         na (jclouds/make-node "abcdef")
+;;         nb (jclouds/make-node "bcdefa")
+;;         nc (jclouds/make-node "cdefab")]
 ;;     (mock/expects [(pallet.compute/nodes
 ;;                      [_]
 ;;                      (mock/once [na nb nc]))
@@ -456,12 +456,12 @@
 ;;                          {:lift-fn pallet.core/sequential-lift}}))))
 
 (deftest create-nodes-test
-  (let [a (jclouds/make-node "a")
+  (let [a (jclouds/make-node "abcdef")
         session (#'core/create-nodes
                  {:compute (jclouds-test-utils/compute)
-                  :group (group-spec :a :servers [{:node a}] :delta-count 1
+                  :group (group-spec :abc :servers [{:node a}] :delta-count 1
                                      :node-spec {:image {:os-family :ubuntu}})
-                  :target-id :a
+                  :target-id :abcdef
                   :environment {:algorithms core/default-algorithms}})]
     (is (seq (:new-nodes session)))
     (is (= 1 (count (:new-nodes session))))))
@@ -469,15 +469,15 @@
 (deftest destroy-nodes-test
 
   (testing "remove all"
-    (let [a (jclouds/make-node "a")
+    (let [a (jclouds/make-node "abcdef")
           session (#'core/remove-nodes
                    {:compute (jclouds-test-utils/compute)
                     :group (core/group-spec
                             :a :servers-to-remove [{:node a}])})]
       (is (= [a] (:old-nodes session)))))
   (testing "remove some"
-    (let [a (jclouds/make-node "a")
-          b (jclouds/make-node "a")
+    (let [a (jclouds/make-node "abcdef")
+          b (jclouds/make-node "abcdef")
           session (#'core/remove-nodes
                    {:compute (jclouds-test-utils/compute)
                     :group (core/group-spec
@@ -486,21 +486,21 @@
                             :servers-to-remove [{:node a}])})]
       (is (seq (:old-nodes session)))
       (is (= 1 (count (:old-nodes session))))
-      (is (= "a" (compute/tag (first (:old-nodes session))))))))
+      (is (= "abcdef" (compute/tag (first (:old-nodes session))))))))
 
 (deftest converge*-test
   (logging/info "converge*-test")
-  (let [a (group-spec "a")
-        b (group-spec "b")
+  (let [a (group-spec "abcdef")
+        b (group-spec "bcdefa")
 
-        na (jclouds/make-node "a")
-        nb (jclouds/make-node "b")
-        nb2 (jclouds/make-node "b" :id "b2" :state NodeState/TERMINATED)]
+        na (jclouds/make-node "abcdef")
+        nb (jclouds/make-node "bcdefa")
+        nb2 (jclouds/make-node "bcdefa" :id "b2" :state NodeState/TERMINATED)]
     (mock/expects [(sequential-apply-phase
                     [session]
                     (do
                       (is (=
-                           #{"a" "b"}
+                           #{"abcdef" "bcdefa"}
                            (set (map compute/group-name (:all-nodes session)))))
                       []))
                    (org.jclouds.compute2/nodes-with-details [_] [na nb nb2])]
@@ -526,7 +526,7 @@
                         (is (= (:group-name group) :a))
                         (is (= (-> group :image :os-family) :centos)))
                       (update-in session [:new-nodes]
-                                 conj (jclouds/make-node "a"))))]
+                                 conj (jclouds/make-node "abcdef"))))]
                   (converge*
                    {:node-set [(assoc a :count 1)]
                     :phase-list [:configure]
@@ -617,17 +617,16 @@
                        (is (= "a" tag))
                        (is (= 2 n))
                        (throw (org.jclouds.compute.RunNodesException.
-
                                "a" 2
                                template
                                #{}
                                {}
                                (hash-map
                                 (jclouds/make-node
-                                 "a" :state NodeState/RUNNING)
+                                 "abcdef" :state NodeState/RUNNING)
                                 (Exception.)
                                 (jclouds/make-node
-                                 "a" :id "a1" :state NodeState/RUNNING)
+                                 "abcdef" :id "a1" :state NodeState/RUNNING)
                                 (Exception.))))))
                      (org.jclouds.compute2/build-template
                       [compute & options]
@@ -687,7 +686,7 @@
 (deftest cluster-test
   (jclouds-test-utils/purge-compute-service)
   (let [cluster (cluster-spec
-                 "c"
+                 "cdefab"
                  :groups [(group-spec
                            "g1" :count 1 :image {:os-family :ubuntu})
 

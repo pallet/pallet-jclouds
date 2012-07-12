@@ -1,5 +1,11 @@
 (ns pallet.compute.jclouds-test
-  (:use clojure.test)
+  (:use
+   clojure.test
+   [pallet.core :only [server-spec]]
+   [pallet.compute :only [nodes compute-service]]
+   [pallet.crate.automated-admin-user :only [automated-admin-user]]
+   [pallet.live-test :only [images test-for test-nodes]]
+   [pallet.phase :only [phase-fn]])
   (:require
    [pallet.common.logging.logutils :as logutils]
    [pallet.compute.jclouds :as jclouds]
@@ -82,3 +88,18 @@
              :operating-system (OperatingSystem. OsFamily/UBUNTU "Ubuntu"
                                                  "Some version" "Some arch"
                                                  "Desc" true)))))))
+
+(deftest live-test
+  (test-for [image (images)]
+    (test-nodes
+        [compute node-map node-types [:configure-dev :install :configure]]
+        {:vmfest-test-host
+         (server-spec
+          :phases
+          {:bootstrap (phase-fn (automated-admin-user))}
+          :image image :count 1)}
+      (let [service (compute-service :vmfest)
+            node (first (:vmfest-test-host node-map))]
+        (clojure.tools.logging/infof "node-map %s" node-map)
+        (is node)
+        (is (seq (nodes service)))))))

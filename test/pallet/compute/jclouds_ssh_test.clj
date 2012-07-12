@@ -42,21 +42,14 @@
   (when f
     (apply f args)))
 
-(defmacro bootstrap-success-return-const
-  []
-  (let [features (jclouds-features)]
-    (if (:bootstrap-expects-zero-response features)
-      `(hash-map :exit 0 :out "")
-      `(hash-map :exit 1 :out "[]"))))
-
 (defn default-exec
   "Default exec function - replies to ./runscript status by returning success"
   [cmd]
   (merge
-   {:exit 0 :err nil :out nil}
+   {:exit 0 :err "" :out ""}
    (condp = cmd
-       "/tmp/init-bootstrap status" (bootstrap-success-return-const)
-       "/tmp/init-bootstrap exitstatus" {:exit 0 :err "" :out "0"}
+       "/tmp/init-bootstrap status" {:exit 1}
+       "/tmp/init-bootstrap exitstatus" {:out "0"}
        {})))
 
 (deftype NoOpClient
@@ -65,14 +58,15 @@
   (connect [this])
   (disconnect [this])
   (exec [this cmd]
-        (logging/info (format "ssh cmd: %s" cmd))
-        (let [response (default-exec cmd)]
-          (ExecResponse. (:out response) (:err response) (:exit response))))
+    (logging/debugf "ssh cmd: %s" cmd)
+    (let [{:keys [out err exit] :as response} (default-exec cmd)]
+      (logging/debugf "ssh response: %s" response)
+      (ExecResponse. out err exit)))
   (get [this path] )
   (^void put [this ^String path ^String content])
   (^void put [this ^String path ^org.jclouds.io.Payload content])
   (getUsername [this] username)
-  (getHostAddress [this] (.getAddress socket)) )
+  (getHostAddress [this] (.toString socket)))
 
 (defn no-op-ssh-client
   [socket username password]
