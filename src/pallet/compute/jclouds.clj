@@ -270,12 +270,14 @@
   (getImageId [_] (.getImageId node))
   (getOperatingSystem [_] (.getOperatingSystem node))
   (getState [_] (.getState node))
-  (getStatus [_] (.getStatus node))
   (getLoginPort [_] (.getLoginPort node))
   (getAdminPassword [_] (.getAdminPassword node))
   (getCredentials [_] (.getCredentials node))
   (getPublicAddresses [_] (.getPublicAddresses node))
-  (getPrivateAddresses [_] (.getPrivateAddresses node)))
+  (getPrivateAddresses [_] (.getPrivateAddresses node))
+
+  org.jclouds.compute.domain.ComputeMetadataIncludingStatus
+  (getStatus [_] (.getStatus node)))
 
 (defn jclouds-node->node [service node]
   (JcloudsNode. node service))
