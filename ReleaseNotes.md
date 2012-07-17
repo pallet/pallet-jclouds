@@ -1,5 +1,9 @@
 # Release Notes
 
+# 1.4.1
+
+- Update to jclouds 1.4.2
+
 # 1.4.0
 
 - Remove jclouds-jsch as a direct dependency

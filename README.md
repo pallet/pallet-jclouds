@@ -35,13 +35,13 @@ jclouds 1.3.x
 : pallet-jclouds-1.3.0-beta.1
 
 jclouds 1.4.x
-: pallet-jclouds-1.4.0
+: pallet-jclouds-1.4.1
 
 ### lein project.clj
 
 ```clojure
 :dependencies [[org.cloudhoist/pallet "0.7.1"]
-               [org.cloudhoist/pallet-jclouds "1.4.0"]]
+               [org.cloudhoist/pallet-jclouds "1.4.1"]]
 :repositories {"sonatype"
                "http://oss.sonatype.org/content/repositories/releases"}
 ```
@@ -58,7 +58,7 @@ jclouds 1.4.x
   <dependency>
     <groupId>org.cloudhoist</groupId>
     <artifactId>pallet-jclouds</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
   </dependency>
 <dependencies>
 
