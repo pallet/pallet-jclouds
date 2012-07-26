@@ -229,7 +229,9 @@
     [node]
     (let [md (into {} (.getUserMetadata node))
           port (:ssh-port md)]
-      (if port (Integer. port))))
+      (if port
+        (Integer. port)
+        (Integer. 22))))
 
   (primary-ip [node] (first (jclouds/public-ips node)))
   (private-ip [node] (first (jclouds/private-ips node)))
