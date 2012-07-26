@@ -464,24 +464,23 @@
                 (->>
                  (.getSuccessfulNodes e)
                  (map (partial jclouds-node->node service))
-                 (filter compute/running?))))]
-      (try
-        (->>
-         (jclouds/create-nodes
-          compute
-          (name (:group-name group-spec))
-          node-count
-          (build-node-template
-           compute
-           group-spec
-           (:public-key-path user)
-           init-script))
-         (map (partial jclouds-node->node service))
-         ;; The following is a workaround for terminated nodes.
-         ;; See http://code.google.com/p/jclouds/issues/detail?id=501
-         (filter compute/running?))
-        (catch org.jclouds.compute.RunNodesException e
-          (process-failed-start-nodes e)))))
+                 (filter node/running?))))]
+      (let [template (build-node-template
+                      compute
+                      group-spec
+                      (:public-key-path user)
+                      init-script)]
+        (logging/debugf "Jclouds template %s" (str template))
+        (try
+          (->>
+           (jclouds/create-nodes
+            compute (name (:group-name group-spec)) node-count template)
+           (map (partial jclouds-node->node service))
+           ;; The following is a workaround for terminated nodes.
+           ;; See http://code.google.com/p/jclouds/issues/detail?id=501
+           (filter node/running?))
+          (catch org.jclouds.compute.RunNodesException e
+            (process-failed-start-nodes e))))))
 
   (reboot
     [_ nodes]
