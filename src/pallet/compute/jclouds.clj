@@ -49,7 +49,14 @@
                      'pallet.compute.jclouds-ssh-test 'ssh-test-client)]
          [(f (ns-resolve 'pallet.compute.jclouds-ssh-test 'no-op-ssh-client))])
        (catch java.io.FileNotFoundException _))
-     [:ssh])))
+     (try
+       (Class/forName "org.jclouds.sshj.config.SshjSshClientModule")
+       [:sshj]
+       (catch ClassNotFoundException _
+         (try
+           (Class/forName "org.jclouds.ssh.jsch.config.JschSshClientModule")
+           [:jsch]
+           (catch ClassNotFoundException _)))))))
 
 (def ^{:private true :doc "translate option names"}
   option-keys
