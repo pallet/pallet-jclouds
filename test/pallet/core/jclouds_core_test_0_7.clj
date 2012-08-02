@@ -1,4 +1,5 @@
 (ns pallet.core.jclouds-core-test
+  (:refer-clojure :exclude [ex-data])
   (:use pallet.core)
   (require
    [pallet.action :as action]

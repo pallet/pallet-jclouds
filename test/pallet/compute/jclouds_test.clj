@@ -4,8 +4,7 @@
    [pallet.core :only [server-spec]]
    [pallet.compute :only [nodes compute-service]]
    [pallet.crate.automated-admin-user :only [automated-admin-user]]
-   [pallet.live-test :only [images test-for test-nodes]]
-   [pallet.phase :only [phase-fn]])
+   [pallet.live-test :only [images test-for test-nodes]])
   (:require
    [pallet.common.logging.logutils :as logutils]
    [pallet.compute.jclouds :as jclouds]
@@ -13,15 +12,15 @@
    [pallet.node :as node])
   (:import [org.jclouds.compute.domain NodeState OsFamily OperatingSystem]))
 
+(try
+  (use '[pallet.api :only [plan-fn]])
+  (catch Exception _
+    (use '[pallet.phase :only [phase-fn] :rename {phase-fn plan-fn}])))
+
 (use-fixtures :once (logutils/logging-threshold-fixture))
 
 (deftest supported-providers-test
   (is (jclouds/supported-providers)))
-
-(deftest node-counts-by-tag-test
-  (is (= {:a 2}
-         (compute/node-counts-by-tag
-          [(jclouds/make-node "a") (jclouds/make-node "a")]))))
 
 (deftest compute-node?-test
   (is (not (jclouds/compute-node? 1)))
@@ -36,14 +35,14 @@
 
 
 (deftest running?-test
-  (is (not (compute/running?
+  (is (not (node/running?
             (jclouds/make-node "a" :state NodeState/TERMINATED))))
-  (is (compute/running?
+  (is (node/running?
        (jclouds/make-node "a" :state NodeState/RUNNING))))
 
 (deftest os-version-test
   (is (= "Some version"
-         (compute/os-version
+         (node/os-version
           (jclouds/make-node
            "t"
            :operating-system (OperatingSystem.
@@ -56,7 +55,7 @@
 
 (deftest os-family-test
   (is (= :ubuntu
-         (compute/os-family
+         (node/os-family
           (jclouds/make-node
            "t"
            :operating-system (OperatingSystem.
@@ -71,17 +70,17 @@
   (testing "basic tests"
     (let [n (jclouds/make-unmanaged-node "atag" "localhost")]
       (is n)
-      (is (compute/running? n))
+      (is (node/running? n))
       (is (jclouds/compute-node? n))
-      (is (= "localhost" (compute/primary-ip n)))))
+      (is (= "localhost" (node/primary-ip n)))))
   (testing "with ssh-port specification"
     (is (= 2222
-           (compute/ssh-port
+           (node/ssh-port
             (jclouds/make-unmanaged-node
              "atag" "localhost" :user-metadata {:ssh-port 2222})))))
   (testing "with image specification"
     (is (= :ubuntu
-           (compute/os-family
+           (node/os-family
             (jclouds/make-unmanaged-node
              "atag" "localhost"
              :image "id"
@@ -96,7 +95,7 @@
         {:vmfest-test-host
          (server-spec
           :phases
-          {:bootstrap (phase-fn (automated-admin-user))}
+          {:bootstrap (plan-fn (automated-admin-user))}
           :image image :count 1)}
       (let [service (compute-service :vmfest)
             node (first (:vmfest-test-host node-map))]
