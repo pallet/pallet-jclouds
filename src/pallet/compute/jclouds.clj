@@ -434,7 +434,7 @@
           options (if (not (:run-script options))
                     (if init-script
                       (assoc options :run-script init-script)
-                      options)
+                      (assoc options :run-script ""))  ; force wait on ssh
                     options)]
       (jclouds/build-template compute options))))
 
