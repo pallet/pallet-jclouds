@@ -227,6 +227,7 @@
          (mapcat :result results)))
     (is (= 2 (count targets)))
     (is (= 2 (count (running-nodes (compute/nodes compute)))))
+    (is (every? node/image-user (map :node targets)))
     (testing "remove some instances"
       (let [op (converge {node 1}
                          :compute compute
