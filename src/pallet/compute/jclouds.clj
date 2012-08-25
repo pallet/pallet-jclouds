@@ -10,6 +10,7 @@
    [pallet.script :as script]
    [pallet.utils :as utils]
    [pallet.execute :as execute]
+   [clojure.string :as string]
    [clojure.tools.logging :as logging])
   (:import
    [org.jclouds.compute.domain.internal HardwareImpl ImageImpl NodeMetadataImpl]
@@ -246,7 +247,9 @@
   (os-version
     [node]
     (when-let [operating-system (.getOperatingSystem node)]
-      (.getVersion operating-system)))
+      (let [version (.getVersion operating-system)]
+        (when-not (string/blank? version)
+          version))))
 
   (hostname [node] (.getName node))
   (id [node] (.getId node))
