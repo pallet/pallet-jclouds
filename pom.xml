@@ -115,7 +115,14 @@
       <groupId>org.jclouds</groupId>
       <artifactId>jclouds-all</artifactId>
       <version>${jclouds.version}</version>
-      <optional>true</optional>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jclouds.driver</groupId>
+      <artifactId>jclouds-sshj</artifactId>
+      <version>${jclouds.version}</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
