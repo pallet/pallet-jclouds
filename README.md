@@ -32,7 +32,7 @@ jclouds 1.2.x
 : pallet-jclouds-1.2.0-alpha1
 
 jclouds 1.3.x
-: pallet-jclouds-1.3.0-beta.1
+: pallet-jclouds-1.3.0
 
 ### lein project.clj
 
