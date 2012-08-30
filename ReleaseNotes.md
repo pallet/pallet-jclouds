@@ -1,5 +1,20 @@
 # Release Notes
 
+# 1.4.2
+
+- Make jclouds-all and jclouds-sshj test scoped
+
+- Make os-version return nil instead of an empty string
+  When the version is not available from jclouds, avoid returning an empty
+  string.
+
+- Add logic to detect sshj and jsch extensions
+  jsch was being assumed.
+
+- Add jclouds template to logging
+
+- Ensure ssh-port returns a value
+
 # 1.4.1
 
 - Update to jclouds 1.4.2
