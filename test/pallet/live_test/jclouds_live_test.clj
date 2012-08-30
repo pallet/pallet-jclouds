@@ -1,5 +1,8 @@
 (ns pallet.live-test.jclouds-live-test
-  (:use clojure.test)
+  (:use
+   clojure.test
+   [pallet.node :only [group-name]]
+   [pallet.compute.jclouds-test-utils :only [purge-compute-service]])
   (:require
    [pallet.live-test :as live-test]
    [pallet.core :as core]
@@ -18,56 +21,28 @@
                   :count 1
                   :phases {}}}))))
 
-(deftest counts-test
-  (let [specs {:repo {:image {:os-family :ubuntu}
-                      :count 1
-                      :phases {}}}]
-    (is (= {{:group-name :repo :base-group-name :repo
-             :image {:os-family :ubuntu}
-             :count 1 :phases {}
-             :session-type nil} 1}
-           (#'live-test/counts specs)))))
-
-(deftest build-nodes-test
-  (let [specs {:repo {:image {:os-family :ubuntu}
-                      :count 1
-                      :phases {}}}
-        service (compute/compute-service "stub" "" "")]
-    (is (= 1
-           (count
-            (live-test/build-nodes
-             service (live-test/node-types specs) specs [:configure]))))))
-
 (deftest live-test-test
-  (live-test/set-service! (compute/compute-service "stub" "" ""))
-  (live-test/with-live-tests
-    (doseq [os-family [:centos]]
-      (live-test/test-nodes
-       [compute node-map node-types]
-       {:repo {:image {:os-family os-family}
-               :count 1
-               :phases {}}}
-       (let [node-list (compute/nodes compute)]
-         (is (= 1 (count ((group-by compute/group-name node-list) "repo")))))))
-    ;; (is (= 0
-    ;;        (count
-    ;;         ((group-by compute/group-name (compute/nodes @live-test/service))
-    ;;          "repo"))))
-    )
-  (testing "with prefix"
-    (live-test/with-live-tests
-      (doseq [os-family [:centos]]
-        (live-test/test-nodes
-         [compute node-map node-types]
-         {:repo {:image {:os-family os-family :prefix "1"}
-                 :count 1
-                 :phases {}}}
-         (let [node-list (compute/nodes compute)]
-           (is (= 1
-                  (count ((group-by compute/group-name node-list) "repo1")))))))
-      ;; (is (= 0
-      ;;        (count
-      ;;         ((group-by
-      ;;            compute/group-name (compute/nodes @live-test/service))
-      ;;          "repo1"))))
-      )))
+  (let [compute (compute/compute-service "stub" :identity "x" :credential "x")]
+    (purge-compute-service compute)
+    (live-test/set-service! compute)
+    (testing "without prefix"
+      (live-test/with-live-tests
+        (doseq [os-family [:centos]]
+          (live-test/test-nodes
+           [compute node-map node-types]
+           {:repo {:image {:os-family os-family}
+                   :count 1
+                   :phases {}}}
+           (let [node-list (compute/nodes compute)]
+             (is (= 1 (count ((group-by group-name node-list) "repo")))))))))
+    (testing "with prefix"
+      (live-test/with-live-tests
+        (doseq [os-family [:centos]]
+          (live-test/test-nodes
+           [compute node-map node-types]
+           {:repo {:image {:os-family os-family :prefix "1"}
+                   :count 1
+                   :phases {}}}
+           (let [node-list (compute/nodes compute)]
+             (is (= 1
+                    (count ((group-by group-name node-list) "repo1")))))))))))

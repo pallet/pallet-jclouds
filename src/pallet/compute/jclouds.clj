@@ -10,6 +10,7 @@
    [pallet.script :as script]
    [pallet.utils :as utils]
    [pallet.execute :as execute]
+   [clojure.string :as string]
    [clojure.tools.logging :as logging])
   (:import
    [org.jclouds.compute.domain.internal HardwareImpl ImageImpl NodeMetadataImpl]
@@ -20,7 +21,7 @@
    [org.jclouds.compute.domain
     NodeState NodeMetadata Image OperatingSystem OsFamily Hardware Template
     HardwareBuilder NodeMetadataBuilder ImageBuilder]
-   org.jclouds.domain.Location
+   [org.jclouds.domain Location LoginCredentials]
    org.jclouds.io.Payload
    org.jclouds.scriptbuilder.domain.Statement
    com.google.common.base.Predicate))
@@ -30,6 +31,30 @@
   (use '[slingshot.slingshot :only [throw+]])
   (catch Exception _
     (use '[slingshot.core :only [throw+]])))
+
+(try
+  (use '[pallet.core.user :only [make-user]])
+  (catch Exception _
+    (use '[pallet.utils :only [make-user]])))
+
+;; feature predicates
+(defmacro ^{:private true} get-has-feature
+  []
+  (try
+    (do
+      (require 'pallet.feature)
+      (when-not (ns-resolve 'pallet.compute.jclouds 'has-feature?)
+        (use '[pallet.feature
+               :only [has-feature? when-feature when-not-feature]])))
+    (catch Exception e
+      `(do
+         (defmacro ^{:private true} has-feature? [_#] false)
+         (defmacro ^{:private true} when-not-feature [_# & ~'body]
+           `(do ~@~'body))
+         (defmacro ^{:private true} when-feature [_# & ~'body]
+           nil)))))
+
+(get-has-feature)
 
 ;;; Meta
 (defn supported-providers []
@@ -49,7 +74,20 @@
                      'pallet.compute.jclouds-ssh-test 'ssh-test-client)]
          [(f (ns-resolve 'pallet.compute.jclouds-ssh-test 'no-op-ssh-client))])
        (catch java.io.FileNotFoundException _))
-     [:ssh])))
+     (try
+       (Class/forName "org.jclouds.sshj.config.SshjSshClientModule")
+       (logging/debugf "Found jclouds sshj driver")
+       [:sshj]
+       (catch ClassNotFoundException _
+         (try
+           (Class/forName "org.jclouds.ssh.jsch.config.JschSshClientModule")
+           (logging/debugf "Found jclouds jsch driver")
+           [:jsch]
+           (catch ClassNotFoundException _
+             (logging/warnf
+              (str "Could not find a jclouds ssh client module. "
+                   "Add org.jclouds.driver/jclouds-sshj or jclouds-jsch "
+                   "to your project dependencies.")))))))))
 
 (def ^{:private true :doc "translate option names"}
   option-keys
@@ -82,26 +120,33 @@
   [provider-id name id location uri user-metadata tags
    group-name hardware image-id os state login-port
    public-ips private-ips admin-password credentials hostname]
-  (.. (NodeMetadataBuilder.)
-      (providerId provider-id)
-      (name name)
-      (id id)
-      (location location)
-      (uri uri)
-      (userMetadata user-metadata)
-      (tags tags)
-      (group group-name)
-      (hardware hardware)
-      (imageId image-id)
-      (operatingSystem os)
-      (state state)
-      (loginPort login-port)
-      (publicAddresses public-ips)
-      (privateAddresses private-ips)
-      (adminPassword admin-password)
-      (credentials credentials)
-      (hostname hostname)
-      build))
+  (let [credentials (if admin-password
+                      (..
+                       (if credentials
+                         (LoginCredentials/builder credentials)
+                         (LoginCredentials/builder))
+                       (password admin-password)
+                       build)
+                      credentials)]
+    (.. (NodeMetadataBuilder.)
+        (providerId provider-id)
+        (name name)
+        (id id)
+        (location location)
+        (uri uri)
+        (userMetadata user-metadata)
+        (tags tags)
+        (group group-name)
+        (hardware hardware)
+        (imageId image-id)
+        (operatingSystem os)
+        (state state)
+        (loginPort login-port)
+        (publicAddresses public-ips)
+        (privateAddresses private-ips)
+        (credentials credentials)
+        (hostname hostname)
+        build)))
 
 (defn image-impl
   [provider-id name id location uri user-metadata tags
@@ -222,7 +267,9 @@
     [node]
     (let [md (into {} (.getUserMetadata node))
           port (:ssh-port md)]
-      (if port (Integer. port))))
+      (if port
+        (Integer. port)
+        (Integer. 22))))
 
   (primary-ip [node] (first (jclouds/public-ips node)))
   (private-ip [node] (first (jclouds/private-ips node)))
@@ -237,7 +284,9 @@
   (os-version
     [node]
     (when-let [operating-system (.getOperatingSystem node)]
-      (.getVersion operating-system)))
+      (let [version (.getVersion operating-system)]
+        (when-not (string/blank? version)
+          version))))
 
   (hostname [node] (.getName node))
   (id [node] (.getId node))
@@ -267,7 +316,33 @@
   (getAdminPassword [_] (.getAdminPassword node))
   (getCredentials [_] (.getCredentials node))
   (getPublicAddresses [_] (.getPublicAddresses node))
-  (getPrivateAddresses [_] (.getPrivateAddresses node)))
+  (getPrivateAddresses [_] (.getPrivateAddresses node))
+
+  org.jclouds.compute.domain.ComputeMetadataIncludingStatus
+  (getStatus [_] (.getStatus node)))
+
+(when-feature node-packager
+  (extend-type JcloudsNode
+    pallet.node/NodePackager
+    (packager [n]
+      (compute/packager-for-os (node/os-family n) (node/os-version n)))))
+
+(when-feature node-image
+  (extend-type JcloudsNode
+    pallet.node/NodeImage
+    (image-user [node]
+      (let [credentials (.getCredentials (.node node))]
+        (logging/debugf
+         "Node credentials %s" (bean credentials))
+        (logging/debugf
+         "  should auth sudo %s" (.shouldAuthenticateSudo credentials))
+        (make-user
+         (.getUser credentials)
+         {:password (.getPassword credentials)
+          :private-key (.getPrivateKey credentials)
+          :sudo-password (when (.shouldAuthenticateSudo credentials)
+                           (.getPassword credentials))})))))
+
 
 (defn jclouds-node->node [service node]
   (JcloudsNode. node service))
@@ -362,12 +437,12 @@
           options (if (not (:run-script options))
                     (if init-script
                       (assoc options :run-script init-script)
-                      options)
+                      (assoc options :run-script ""))  ; force wait on ssh
                     options)]
       (jclouds/build-template compute options))))
 
 (deftype JcloudsService
-    [^org.jclouds.compute.ComputeService compute environment]
+    [^org.jclouds.compute.ComputeService compute environment tag-provider]
 
   ;; implement jclouds ComputeService by forwarding
   org.jclouds.compute.ComputeService
@@ -452,24 +527,23 @@
                 (->>
                  (.getSuccessfulNodes e)
                  (map (partial jclouds-node->node service))
-                 (filter compute/running?))))]
-      (try
-        (->>
-         (jclouds/create-nodes
-          compute
-          (name (:group-name group-spec))
-          node-count
-          (build-node-template
-           compute
-           group-spec
-           (:public-key-path user)
-           init-script))
-         (map (partial jclouds-node->node service))
-         ;; The following is a workaround for terminated nodes.
-         ;; See http://code.google.com/p/jclouds/issues/detail?id=501
-         (filter compute/running?))
-        (catch org.jclouds.compute.RunNodesException e
-          (process-failed-start-nodes e)))))
+                 (filter node/running?))))]
+      (let [template (build-node-template
+                      compute
+                      group-spec
+                      (:public-key-path user)
+                      init-script)]
+        (logging/debugf "Jclouds template %s" (str template))
+        (try
+          (->>
+           (jclouds/create-nodes
+            compute (name (:group-name group-spec)) node-count template)
+           (map (partial jclouds-node->node service))
+           ;; The following is a workaround for terminated nodes.
+           ;; See http://code.google.com/p/jclouds/issues/detail?id=501
+           (filter node/running?))
+          (catch org.jclouds.compute.RunNodesException e
+            (process-failed-start-nodes e))))))
 
   (reboot
     [_ nodes]
@@ -502,7 +576,7 @@
 
   (destroy-node
     [_ node]
-    (jclouds/destroy-node compute (compute/id node)))
+    (jclouds/destroy-node compute (node/id node)))
 
   (images [_] (jclouds/images compute))
 
@@ -510,6 +584,42 @@
 
   pallet.environment.Environment
   (environment [_] environment))
+
+(defmacro add-node-tag []
+  (if (has-feature? taggable-nodes)
+    '(do
+       (deftype JcloudsNodeTag []
+         pallet.compute.NodeTagReader
+         (node-tag [_ node tag-name]
+           )
+         (node-tag [_ node tag-name default-value]
+           )
+         (node-tags [_ node]
+           )
+         pallet.compute.NodeTagWriter
+         (tag-node! [_ node tag-name value]
+           )
+         (node-taggable? [_ node] false))
+       (extend-type JcloudsService
+         pallet.compute/NodeTagReader
+         (node-tag
+           ([compute node tag-name]
+              (compute/node-tag
+               (.tag_provider compute) node tag-name))
+           ([compute node tag-name default-value]
+              (compute/node-tag
+               (.tag_provider compute) node tag-name default-value)))
+         (node-tags [compute node]
+           (compute/node-tags (.tag_provider compute) node))
+         pallet.compute/NodeTagWriter
+         (tag-node! [compute node tag-name value]
+           (compute/tag-node! (.tag_provider compute) node tag-name value))
+         (node-taggable? [compute node]
+           (compute/node-taggable? (.tag_provider compute) node)))
+       (defn default-tag-provider [] (JcloudsNodeTag.)))
+    `(defn ~'default-tag-provider [] nil)))
+
+(add-node-tag)
 
 (defn node-locations
   "Return locations of a node as a seq."
@@ -588,8 +698,10 @@
 
 ;; service factory implementation for jclouds
 (defmethod implementation/service :default
-  [provider {:keys [identity credential extensions endpoint environment]
-             :or {extensions (default-jclouds-extensions provider)}
+  [provider {:keys [identity credential extensions endpoint environment
+                    tag-provider]
+             :or {extensions (default-jclouds-extensions provider)
+                  tag-provider (default-tag-provider)}
              :as options}]
   (logging/debugf "extensions %s" (pr-str extensions))
   (let [options (dissoc
@@ -605,4 +717,5 @@
       (name provider) identity credential
       :extensions extensions
       options)
-     environment)))
+     environment
+     tag-provider)))
