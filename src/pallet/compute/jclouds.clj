@@ -331,17 +331,18 @@
   (extend-type JcloudsNode
     pallet.node/NodeImage
     (image-user [node]
-      (let [credentials (.getCredentials (.node node))]
-        (logging/debugf
-         "Node credentials %s" (bean credentials))
-        (logging/debugf
-         "  should auth sudo %s" (.shouldAuthenticateSudo credentials))
-        (make-user
-         (.getUser credentials)
-         {:password (.getPassword credentials)
-          :private-key (.getPrivateKey credentials)
-          :sudo-password (when (.shouldAuthenticateSudo credentials)
-                           (.getPassword credentials))})))))
+      (if-let [credentials (.getCredentials (.node node))]
+        (do
+          (logging/debugf
+           "Node credentials %s" (bean credentials))
+          (logging/debugf
+           "  should auth sudo %s" (.shouldAuthenticateSudo credentials))
+          (make-user
+           (.getUser credentials)
+           {:password (.getPassword credentials)
+            :private-key (.getPrivateKey credentials)
+            :sudo-password (when (.shouldAuthenticateSudo credentials)
+                             (.getPassword credentials))}))))))
 
 
 (defn jclouds-node->node [service node]
