@@ -1,5 +1,11 @@
 # Release Notes
 
+# 1.5.0
+
+- Handle case where jclouds returns nil credentials
+
+- Update to jclouds 1.5.2
+
 # 1.5.0-alpha.1
 
 - Update to jclouds 1.5.0 beta.11
@@ -28,4 +34,3 @@
   It was being implemented on NodeMetadata
 
 - Add getStatus method to JcloudsNode
-
