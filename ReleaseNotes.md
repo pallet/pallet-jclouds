@@ -1,5 +1,9 @@
 # Release Notes
 
+# 1.5.1
+
+- Fix destruction of failed nodes
+
 # 1.5.0
 
 - Handle case where jclouds returns nil credentials

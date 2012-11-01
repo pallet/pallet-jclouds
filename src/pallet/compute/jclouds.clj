@@ -519,7 +519,9 @@
                  (:group-name group-spec))
                 (doseq [node (keys bad-nodes)]
                   (try
-                    (compute/destroy-node service node)
+                    (compute/destroy-node
+                     service
+                     (jclouds-node->node service node))
                     (catch Exception e
                       (logging/warnf
                        e
