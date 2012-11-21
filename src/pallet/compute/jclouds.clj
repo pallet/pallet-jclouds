@@ -1,5 +1,7 @@
 (ns pallet.compute.jclouds
   "jclouds compute service implementation."
+  (:use
+   [clojure.string :only [lower-case]])
   (:require
    [org.jclouds.compute2 :as jclouds]
    [pallet.compute.implementation :as implementation]
@@ -343,6 +345,24 @@
             :private-key (.getPrivateKey credentials)
             :sudo-password (when (.shouldAuthenticateSudo credentials)
                              (.getPassword credentials))}))))))
+
+(when-feature node-hardware
+  (extend-type JcloudsNode
+    pallet.node/NodeHardware
+    (hardware [node]
+      (let [beanf (comp #(dissoc % :class) bean)
+            hw (.getHardware (.node node))
+                 b (beanf hw)]
+        (logging/debugf "Node hardware %s" (bean hw))
+        (-> b
+            (select-keys [:hypervisor :providerId :id :ram])
+            (assoc :cpus (map beanf (:processors b)))
+            (assoc :disks
+              (->>
+               (:volumes b)
+               (map beanf)
+               (map #(update-in
+                      % [:type] (comp keyword lower-case str))))))))))
 
 
 (defn jclouds-node->node [service node]
