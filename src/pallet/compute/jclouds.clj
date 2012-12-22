@@ -1,6 +1,7 @@
 (ns pallet.compute.jclouds
   "jclouds compute service implementation."
   (:use
+   [clojure.stacktrace :only [root-cause]]
    [clojure.string :only [lower-case]])
   (:require
    [org.jclouds.compute2 :as jclouds]
@@ -352,17 +353,22 @@
     (hardware [node]
       (let [beanf (comp #(dissoc % :class) bean)
             hw (.getHardware (.node node))
-                 b (beanf hw)]
+            b (beanf hw)]
         (logging/debugf "Node hardware %s" (bean hw))
+        (logging/debugf "     volumes sizes %s" (->>
+                                                 (.. hw getVolumes)
+                                                 (map #(.getSize %))
+                                                 vec))
         (-> b
             (select-keys [:hypervisor :providerId :id :ram])
-            (assoc :cpus (map beanf (:processors b)))
+            (assoc :cpus (vec (map beanf (:processors b))))
             (assoc :disks
               (->>
                (:volumes b)
                (map beanf)
-               (map #(update-in
-                      % [:type] (comp keyword lower-case str))))))))))
+               (map #(update-in % [:size] (fn [s] (or s 8))))
+               (map #(update-in % [:type] (comp keyword lower-case str)))
+               vec)))))))
 
 
 (defn jclouds-node->node [service node]
@@ -435,10 +441,9 @@
   "Build the template for specified target node and compute context"
   [compute group public-key-path init-script]
   {:pre [(map? group) (:group-name group)]}
-  (logging/info
-   (str "building node template for " (:group-name group)))
+  (logging/debug (str "building node template for " (:group-name group)))
   (when public-key-path
-    (logging/info (str "  authorizing " public-key-path)))
+    (logging/debug (str "  authorizing " public-key-path)))
   (when init-script
     (logging/debug (str "  init script\n" init-script)))
   (let [options (->> [:image :hardware :location :network :qos]
@@ -449,7 +454,7 @@
                   (dissoc options :os-family) ; remove if we added in
                                               ; ensure-os-family
                   options)]
-    (logging/info (str "  options " options))
+    (logging/debug (str "  options " options))
     (let [options (if (and public-key-path
                            (not (:authorize-public-key options)))
                     (assoc options
@@ -537,6 +542,10 @@
                  (count bad-nodes)
                  node-count
                  (:group-name group-spec))
+                (doseq [[node e] bad-nodes]
+                  (logging/errorf
+                   "Failed to start node for group %s %s"
+                   (:group-name group-spec) (.getMessage (root-cause e))))
                 (doseq [node (keys bad-nodes)]
                   (try
                     (compute/destroy-node
