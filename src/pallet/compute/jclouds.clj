@@ -638,21 +638,68 @@
       (compute-service-properties (.compute compute)))))
 
 
+(defn resource-id [node]
+  (.getId node))
+
+(defn local-resource-id [node]
+  (let [id (.getId node)]
+    (subs id (inc (.indexOf id "/")))))
+
 (defmacro add-node-tag []
   (if (has-feature? taggable-nodes)
     '(do
-       (deftype JcloudsNodeTag []
+       (defn tag-filter [m]
+         (com.google.common.collect.Multimaps/forMap
+          m))
+
+       (deftype JcloudsNodeTag [apis]
          pallet.compute.NodeTagReader
          (node-tag [_ node tag-name]
-           )
+           (when-let [api (get apis (.. node getLocation getParent getId))]
+             (let [tags (.. api
+                            (filter (tag-filter
+                                     {"resource-id" (local-resource-id node)
+                                      "key" (name tag-name)}))
+                            (toImmutableList))]
+               (when (seq tags)
+                 (let [v (.getValue (first tags))]
+                   (when (.isPresent v)
+                     (.get v)))))))
          (node-tag [_ node tag-name default-value]
-           )
+           (when-let [api (get apis (.. node getLocation getParent getId))]
+             (let [tags (.. api
+                            (filter (tag-filter
+                                     {"resource-id" (local-resource-id node)
+                                      "key" (name tag-name)}))
+                            (toImmutableList))]
+               (if (seq tags)
+                 (let [v (.getValue (first tags))]
+                   (if (.isPresent v)
+                     (.get v)
+                     default-value))
+                 default-value))))
          (node-tags [_ node]
-           )
+           (when-let [api (get apis (.. node getLocation getParent getId))]
+             (into {} (map
+                       #(vector (.getKey %) (let [v (.getValue %)]
+                                              (when (.isPresent v)
+                                                (.get v))))
+                       (.. api
+                           (filter
+                            (tag-filter
+                             {"resource-id" (local-resource-id node)}))
+                           (toImmutableList))))))
+
          pallet.compute.NodeTagWriter
          (tag-node! [_ node tag-name value]
-           )
-         (node-taggable? [_ node] false))
+           (when-let [api (get apis (.. node getLocation getParent getId))]
+             (.applyToResources
+              api
+              (java.util.HashMap. {(name tag-name) (name value)})
+              #{(local-resource-id node)})))
+         (node-taggable? [_ node]
+           (get apis (.. node getLocation getParent getId))))
+
        (extend-type JcloudsService
          pallet.compute/NodeTagReader
          (node-tag
@@ -669,8 +716,26 @@
            (compute/tag-node! (.tag_provider compute) node tag-name value))
          (node-taggable? [compute node]
            (compute/node-taggable? (.tag_provider compute) node)))
-       (defn default-tag-provider [] (JcloudsNodeTag.)))
-    `(defn ~'default-tag-provider [] nil)))
+
+       (defn default-tag-provider [service]
+         (JcloudsNodeTag.
+          (try
+            (let [regions (.. service getContext unwrap getApi
+                              getConfiguredRegions)]
+              (logging/debugf "Regions for compute service %s" regions)
+              (into {}
+                    (map
+                     #(let [api (.. service getContext
+                                    unwrap getApi
+                                    (getTagApiForRegion %))]
+                        (when (.isPresent api)
+                          (logging/debugf "Found tag api for region %s" %)
+                          [% (.get api)]))
+                     regions)))
+            (catch java.lang.IllegalArgumentException e
+              (logging/debugf e "TagApi not supported")
+              (logging/tracef e "While trying to get TagApi"))))))
+    `(defn ~'default-tag-provider [_#] nil)))
 
 (add-node-tag)
 
@@ -753,8 +818,7 @@
 (defmethod implementation/service :default
   [provider {:keys [identity credential extensions endpoint environment
                     tag-provider]
-             :or {extensions (default-jclouds-extensions provider)
-                  tag-provider (default-tag-provider)}
+             :or {extensions (default-jclouds-extensions provider)}
              :as options}]
   (logging/debugf "extensions %s" (pr-str extensions))
   (let [options (dissoc
@@ -762,13 +826,14 @@
                  :identity :credential :extensions :blobstore :environment)
         options (interleave
                  (map #(option-key provider %) (keys options))
-                 (vals options))]
+                 (vals options))
+        service (apply
+                 jclouds/compute-service
+                 (name provider) identity credential
+                 :extensions extensions
+                 options)]
     (logging/debugf "options %s" (pr-str (vec options)))
     (JcloudsService.
-     (apply
-      jclouds/compute-service
-      (name provider) identity credential
-      :extensions extensions
-      options)
+     service
      environment
-     tag-provider)))
+     (or tag-provider (default-tag-provider service)))))
