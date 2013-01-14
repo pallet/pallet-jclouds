@@ -205,7 +205,7 @@
 
   <properties>
     <jclouds.version>1.5.3</jclouds.version>
-    <pallet.version>0.7.0</pallet.version>
+    <pallet.version>0.7.2</pallet.version>
     <pallet-jclouds.doc.version>1.5</pallet-jclouds.doc.version>
   </properties>
 
