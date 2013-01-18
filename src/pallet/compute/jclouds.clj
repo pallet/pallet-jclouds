@@ -357,13 +357,19 @@
     (logging/info (str "  authorizing " public-key-path)))
   (when init-script
     (logging/debug (str "  init script\n" init-script)))
-  (let [options (->> [:image :hardware :location :network :qos]
-                     (select-keys group)
+  (let [ ;; when we have an id, just use that so other keys don't prevent a
+        ;; match
+        group-spec (update-in group [:image]
+                              #(if (:image-id %)
+                                 (select-keys % [:image-id])
+                                 %))
+        options (->> [:image :hardware :location :network :qos]
+                     (select-keys group-spec)
                      vals
                      (reduce merge))
         options (if (:default-os-family group)
                   (dissoc options :os-family) ; remove if we added in
-                                              ; ensure-os-family
+                                        ; ensure-os-family
                   options)]
     (logging/info (str "  options " options))
     (let [options (if (and public-key-path
