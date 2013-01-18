@@ -2,7 +2,8 @@
   "jclouds compute service implementation."
   (:use
    [clojure.stacktrace :only [root-cause]]
-   [clojure.string :only [lower-case]])
+   [clojure.string :only [lower-case]]
+   [clojure.tools.logging :only [debugf warnf]])
   (:require
    [org.jclouds.compute2 :as jclouds]
    [pallet.compute.implementation :as implementation]
@@ -655,7 +656,8 @@
        (deftype JcloudsNodeTag [apis]
          pallet.compute.NodeTagReader
          (node-tag [_ node tag-name]
-           (when-let [api (get apis (.. node getLocation getParent getId))]
+           (debugf "node-tag %s %s" (resource-id node) tag-name)
+           (if-let [api (get apis (.. node getLocation getParent getId))]
              (let [tags (.. api
                             (filter (tag-filter
                                      {"resource-id" (local-resource-id node)
@@ -664,9 +666,13 @@
                (when (seq tags)
                  (let [v (.getValue (first tags))]
                    (when (.isPresent v)
-                     (.get v)))))))
+                     (.get v)))))
+             (warnf "node-tag tagging not supported for %s"
+                    (resource-id node))))
          (node-tag [_ node tag-name default-value]
-           (when-let [api (get apis (.. node getLocation getParent getId))]
+           (debugf "node-tag %s %s %s"
+                   (resource-id node) tag-name default-value)
+           (if-let [api (get apis (.. node getLocation getParent getId))]
              (let [tags (.. api
                             (filter (tag-filter
                                      {"resource-id" (local-resource-id node)
@@ -677,9 +683,12 @@
                    (if (.isPresent v)
                      (.get v)
                      default-value))
-                 default-value))))
+                 default-value))
+             (warnf "node-tag tagging not supported for %s"
+                    (resource-id node))))
          (node-tags [_ node]
-           (when-let [api (get apis (.. node getLocation getParent getId))]
+           (debugf "node-tags %s" (resource-id node))
+           (if-let [api (get apis (.. node getLocation getParent getId))]
              (into {} (map
                        #(vector (.getKey %) (let [v (.getValue %)]
                                               (when (.isPresent v)
@@ -688,16 +697,22 @@
                            (filter
                             (tag-filter
                              {"resource-id" (local-resource-id node)}))
-                           (toImmutableList))))))
+                           (toImmutableList))))
+             (warnf "node-tags tagging not supported for %s"
+                    (resource-id node))))
 
          pallet.compute.NodeTagWriter
          (tag-node! [_ node tag-name value]
-           (when-let [api (get apis (.. node getLocation getParent getId))]
+           (debugf "tag-node! %s %s %s" (resource-id node) tag-name value)
+           (if-let [api (get apis (.. node getLocation getParent getId))]
              (.applyToResources
               api
               (java.util.HashMap. {(name tag-name) (name value)})
-              #{(local-resource-id node)})))
+              #{(local-resource-id node)})
+             (warnf "tag-node! tagging not supported for %s"
+                    (resource-id node))))
          (node-taggable? [_ node]
+           (debugf "node-taggable? %s" (resource-id node))
            (get apis (.. node getLocation getParent getId))))
 
        (extend-type JcloudsService
