@@ -14,6 +14,7 @@ echo ""
 echo "Start release of $version, previous version is $previous_version"
 echo ""
 echo ""
+git flow release start $version support/1.4.x
 
 echo ""
 echo ""

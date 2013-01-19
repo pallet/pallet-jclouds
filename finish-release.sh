@@ -19,4 +19,5 @@ echo -n "commiting release notes and readme.  enter to continue:" && read x \
 && mvn release:prepare \
 && mvn release:perform \
 && mvn nexus:staging-close \
-&& mvn nexus:staging-promote
+&& mvn nexus:staging-promote \
+&& git flow release finish -n $version
