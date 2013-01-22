@@ -552,6 +552,7 @@
                  (:group-name group-spec))
                 (doseq [[node e] bad-nodes]
                   (logging/errorf
+                   e
                    "Failed to start node for group %s %s"
                    (:group-name group-spec) (.getMessage (root-cause e))))
                 (doseq [node (keys bad-nodes)]
