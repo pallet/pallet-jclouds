@@ -361,7 +361,11 @@
         ;; match
         group-spec (update-in group [:image]
                               #(if (:image-id %)
-                                 (select-keys % [:image-id])
+                                 (apply
+                                  dissoc %
+                                  (remove
+                                   (fn [kw] (= :image-id kw))
+                                   (keys @#'org.jclouds.compute2/template-map)))
                                  %))
         options (->> [:image :hardware :location :network :qos]
                      (select-keys group-spec)
