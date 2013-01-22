@@ -204,6 +204,7 @@
   </profiles>
 
   <properties>
+    <clojure.version>1.3.0</clojure.version>
     <jclouds.version>1.5.5</jclouds.version>
     <pallet.version>0.7.2</pallet.version>
     <pallet-jclouds.doc.version>1.5</pallet-jclouds.doc.version>
