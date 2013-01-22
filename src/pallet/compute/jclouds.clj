@@ -1,6 +1,7 @@
 (ns pallet.compute.jclouds
   "jclouds compute service implementation."
   (:use
+   [clojure.reflect :only [reflect]]
    [clojure.stacktrace :only [root-cause]]
    [clojure.string :only [lower-case]]
    [clojure.tools.logging :only [debugf warnf]])
@@ -652,6 +653,12 @@
   (let [id (.getId node)]
     (subs id (inc (.indexOf id "/")))))
 
+(defn member-with-name [obj member-name]
+  (->> (reflect obj)
+       :members
+       (filter #(= (:name %) name))
+       first))
+
 (defmacro add-node-tag []
   (if (has-feature? taggable-nodes)
     '(do
@@ -736,26 +743,33 @@
          (tag-node! [compute node tag-name value]
            (compute/tag-node! (.tag_provider compute) node tag-name value))
          (node-taggable? [compute node]
-           (compute/node-taggable? (.tag_provider compute) node)))
+           (when (.tag_provider compute)
+             (compute/node-taggable? (.tag_provider compute) node))))
 
        (defn default-tag-provider [service]
-         (JcloudsNodeTag.
-          (try
-            (let [regions (.. service getContext unwrap getApi
-                              getConfiguredRegions)]
-              (logging/debugf "Regions for compute service %s" regions)
-              (into {}
-                    (map
-                     #(let [api (.. service getContext
-                                    unwrap getApi
-                                    (getTagApiForRegion %))]
-                        (when (.isPresent api)
-                          (logging/debugf "Found tag api for region %s" %)
-                          [% (.get api)]))
-                     regions)))
-            (catch java.lang.IllegalArgumentException e
-              (logging/debugf e "TagApi not supported")
-              (logging/tracef e "While trying to get TagApi"))))))
+         (when (and
+                (member-with-name
+                  (.. service getContext unwrap) "getApi")
+                (member-with-name
+                  (.. service getContext unwrap getApi) "getConfiguredRegions"))
+           (logging/debugf "default-tag-provider supported")
+           (JcloudsNodeTag.
+            (try
+              (let [regions (.. service getContext unwrap getApi
+                                getConfiguredRegions)]
+                (logging/debugf "Regions for compute service %s" regions)
+                (into {}
+                      (map
+                       #(let [api (.. service getContext
+                                      unwrap getApi
+                                      (getTagApiForRegion %))]
+                          (when (.isPresent api)
+                            (logging/debugf "Found tag api for region %s" %)
+                            [% (.get api)]))
+                       regions)))
+              (catch java.lang.IllegalArgumentException e
+                (logging/debugf e "TagApi not supported")
+                (logging/tracef e "While trying to get TagApi")))))))
     `(defn ~'default-tag-provider [_#] nil)))
 
 (add-node-tag)
