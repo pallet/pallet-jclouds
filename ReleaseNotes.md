@@ -1,5 +1,12 @@
 # Release Notes
 
+# 1.4.3
+
+- Use only :image-id for template if specified
+  Stop other information in the template from preventing a match.
+
+- Update to pallet 0.7.2
+
 # 1.4.2
 
 - Make jclouds-all and jclouds-sshj test scoped
