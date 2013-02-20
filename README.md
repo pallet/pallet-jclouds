@@ -38,7 +38,7 @@ jclouds 1.4.x
 : pallet-jclouds-1.4.2
 
 jclouds 1.5.x
-: pallet-jclouds-1.5.1
+: pallet-jclouds-1.5.1 (jclouds 1.5.2)
 
 ### lein project.clj
 
@@ -72,6 +72,12 @@ jclouds 1.5.x
   </repository>
 </repositories>
 ```
+
+## Using other jclouds versions
+
+To uses a different minor version, say 1.5.7, you can use the nearest matching
+pallet-jclouds version, add exclusions for the default jclouds version in that
+release, and add jclouds dependencies for the jclouds version you would like.
 
 ## License
 
