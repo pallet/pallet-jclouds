@@ -750,29 +750,24 @@
              (compute/node-taggable? (.tag_provider compute) node))))
 
        (defn default-tag-provider [service]
-         (when (and
-                (member-with-name
-                  (.. service getContext unwrap) "getApi")
-                (member-with-name
-                  (.. service getContext unwrap getApi) "getConfiguredRegions"))
-           (logging/debugf "default-tag-provider supported")
+         (logging/debugf "default-tag-provider looking for tag service")
+         (try
            (JcloudsNodeTag.
-            (try
-              (let [regions (.. service getContext unwrap getApi
-                                getConfiguredRegions)]
-                (logging/debugf "Regions for compute service %s" regions)
-                (into {}
-                      (map
-                       #(let [api (.. service getContext
-                                      unwrap getApi
-                                      (getTagApiForRegion %))]
-                          (when (.isPresent api)
-                            (logging/debugf "Found tag api for region %s" %)
-                            [% (.get api)]))
-                       regions)))
-              (catch java.lang.IllegalArgumentException e
-                (logging/debugf e "TagApi not supported")
-                (logging/tracef e "While trying to get TagApi")))))))
+            (let [regions (.. service getContext unwrap getApi
+                              getConfiguredRegions)]
+              (logging/debugf "Regions for compute service %s" regions)
+              (into {}
+                    (map
+                     #(let [api (.. service getContext
+                                    unwrap getApi
+                                    (getTagApiForRegion %))]
+                        (when (.isPresent api)
+                          (logging/debugf "Found tag api for region %s" %)
+                          [% (.get api)]))
+                     regions))))
+           (catch java.lang.IllegalArgumentException e
+             (logging/debugf e "TagApi not supported")
+             (logging/tracef e "While trying to get TagApi")))))
     `(defn ~'default-tag-provider [_#] nil)))
 
 (add-node-tag)
