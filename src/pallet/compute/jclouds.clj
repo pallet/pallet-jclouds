@@ -31,12 +31,6 @@
    org.jclouds.scriptbuilder.domain.Statement
    com.google.common.base.Predicate))
 
-;; slingshot version compatibility
-(try
-  (use '[slingshot.slingshot :only [throw+]])
-  (catch Exception _
-    (use '[slingshot.core :only [throw+]])))
-
 (try
   (use '[pallet.core.user :only [make-user]])
   (catch Exception _
@@ -537,12 +531,12 @@
                        str keyword)]
         (logging/infof "OS is %s" (pr-str family))
         (when (or (nil? family) (= family OsFamily/UNRECOGNIZED))
-          (throw+
-           {:type :unable-to-determine-os-type
-            :message (format
-                      (str "jclouds was unable to determine the os-family "
-                           "of the template %s")
-                      (pr-str (:image group)))}))
+          (throw
+           (Exception.
+            (format
+             (str "jclouds was unable to determine the os-family "
+                  "of the template %s")
+             (pr-str (:image group))))))
         (->
          group
          (assoc-in [:image :os-family] family)

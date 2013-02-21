@@ -145,7 +145,7 @@
   (testing "operation/lift"
     (let [[localf seen?] (seen-fn "lift-test")
           spec (server-spec
-                :phases {:p1 (plan-fn (exec-script (ls "/")))
+                :phases {:p1 (plan-fn (exec-script ("ls" "/")))
                          :p2 (plan-fn (localf))})
           local (group-spec
                  "local"
@@ -174,7 +174,7 @@
     (let [local (group-spec "local" :image {:os-family :ubuntu})
           [localf seen?] (seen-fn "lift-test")
           result (lift {local (jclouds/make-localhost-node)}
-                       :phase [(plan-fn (exec-script (ls "/")))
+                       :phase [(plan-fn (exec-script ("ls" "/")))
                                (plan-fn (localf))]
                        :user (assoc *admin-user*
                                :username (test-utils/test-username)
