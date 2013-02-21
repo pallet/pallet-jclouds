@@ -628,16 +628,29 @@
   pallet.environment.Environment
   (environment [_] environment))
 
+
+(defmacro if-has-credential-supplier [if-form then-form]
+  (if (try (eval 'pallet.jclouds/CREDENTIALS_SUPPLIER) (catch Exception _))
+    if-form
+    then-form))
+
+(if-has-credential-supplier
+ (defn credentials-provider [injector]
+   (.getInstance injector
+    (com.google.inject.Key/get
+     pallet.jcloudsTokens/CREDENTIALS_SUPPLIER javax.inject.Provider)))
+ (defn credentials-provider [injector]
+   (.getInstance injector
+    (com.google.inject.Key/get
+     java.lang.String
+     org.jclouds.rest.annotations.Credential))))
+
 (when-feature compute-service-properties
   (defn compute-service-properties
     "Return a map with the service details"
     [^org.jclouds.compute.ComputeService compute-service]
     (let [context (.. compute-service getContext unwrap)
-          credential (.. context utils injector
-                         (getInstance
-                          (com.google.inject.Key/get
-                           java.lang.String
-                           org.jclouds.rest.annotations.Credential)))]
+          credential (credentials-provider (.. context utils injector))]
       {:provider :aws-ec2
        :identity (.getIdentity context)
        :credential credential
