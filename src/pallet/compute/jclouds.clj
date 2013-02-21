@@ -372,6 +372,10 @@
                (map #(update-in % [:type] (comp keyword lower-case str)))
                vec)))))))
 
+(when-feature node-proxy
+  (extend-type JcloudsNode
+    pallet.node/NodeProxy
+    (proxy [node])))
 
 (defn jclouds-node->node [service node]
   (JcloudsNode. node service))
