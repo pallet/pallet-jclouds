@@ -1,5 +1,34 @@
 # Release Notes
 
+# 1.5.2
+
+## Features
+
+- Update clojure version to 1.3.0
+
+- Update to jclouds 1.5.5
+
+- Enable node tags for AWS EC2.
+
+- Implement compute-service-properties.  The service can now be introspected.
+
+- Implement NodeHardware protocol.  Node hardware is now queryable.
+
+## Fixes
+
+- Fix service-properties support in jclouds 1.5.6+
+
+- Fix node tagging support
+
+- Remove slingshot and fix 0.8 tests
+
+- Log node start failure exceptions
+
+- Use only :image-id for template if specified
+  Stop other information in the template from preventing a match.
+
+- Ensure node start exceptions are reported
+
 # 1.5.1
 
 - Fix destruction of failed nodes
