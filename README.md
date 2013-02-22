@@ -38,13 +38,13 @@ jclouds 1.4.x
 : pallet-jclouds-1.4.2
 
 jclouds 1.5.x
-: pallet-jclouds-1.5.1
+: pallet-jclouds-1.5.2 (jclouds 1.5.5)
 
 ### lein project.clj
 
 ```clojure
 :dependencies [[org.cloudhoist/pallet "0.7.2"]
-               [org.cloudhoist/pallet-jclouds "1.5.1"]]
+               [org.cloudhoist/pallet-jclouds "1.5.2"]]
 :repositories {"sonatype"
                "http://oss.sonatype.org/content/repositories/releases"}
 ```
@@ -61,7 +61,7 @@ jclouds 1.5.x
   <dependency>
     <groupId>org.cloudhoist</groupId>
     <artifactId>pallet-jclouds</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
   </dependency>
 <dependencies>
 
@@ -72,6 +72,12 @@ jclouds 1.5.x
   </repository>
 </repositories>
 ```
+
+## Using other jclouds versions
+
+To uses a different minor version, say 1.5.7, you can use the nearest matching
+pallet-jclouds version, add exclusions for the default jclouds version in that
+release, and add jclouds dependencies for the jclouds version you would like.
 
 ## License
 

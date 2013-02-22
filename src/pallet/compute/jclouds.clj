@@ -1,5 +1,10 @@
 (ns pallet.compute.jclouds
   "jclouds compute service implementation."
+  (:use
+   [clojure.reflect :only [reflect]]
+   [clojure.stacktrace :only [root-cause]]
+   [clojure.string :only [lower-case]]
+   [clojure.tools.logging :only [debugf warnf]])
   (:require
    [org.jclouds.compute2 :as jclouds]
    [pallet.compute.implementation :as implementation]
@@ -25,12 +30,6 @@
    org.jclouds.io.Payload
    org.jclouds.scriptbuilder.domain.Statement
    com.google.common.base.Predicate))
-
-;; slingshot version compatibility
-(try
-  (use '[slingshot.slingshot :only [throw+]])
-  (catch Exception _
-    (use '[slingshot.core :only [throw+]])))
 
 (try
   (use '[pallet.core.user :only [make-user]])
@@ -344,6 +343,33 @@
             :sudo-password (when (.shouldAuthenticateSudo credentials)
                              (.getPassword credentials))}))))))
 
+(when-feature node-hardware
+  (extend-type JcloudsNode
+    pallet.node/NodeHardware
+    (hardware [node]
+      (let [beanf (comp #(dissoc % :class) bean)
+            hw (.getHardware (.node node))
+            b (beanf hw)]
+        (logging/debugf "Node hardware %s" (bean hw))
+        (logging/debugf "     volumes sizes %s" (->>
+                                                 (.. hw getVolumes)
+                                                 (map #(.getSize %))
+                                                 vec))
+        (-> b
+            (select-keys [:hypervisor :providerId :id :ram])
+            (assoc :cpus (vec (map beanf (:processors b))))
+            (assoc :disks
+              (->>
+               (:volumes b)
+               (map beanf)
+               (map #(update-in % [:size] (fn [s] (or s 8))))
+               (map #(update-in % [:type] (comp keyword lower-case str)))
+               vec)))))))
+
+(when-feature node-proxy
+  (extend-type JcloudsNode
+    pallet.node/NodeProxy
+    (proxy [node])))
 
 (defn jclouds-node->node [service node]
   (JcloudsNode. node service))
@@ -415,21 +441,30 @@
   "Build the template for specified target node and compute context"
   [compute group public-key-path init-script]
   {:pre [(map? group) (:group-name group)]}
-  (logging/info
-   (str "building node template for " (:group-name group)))
+  (logging/debug (str "building node template for " (:group-name group)))
   (when public-key-path
-    (logging/info (str "  authorizing " public-key-path)))
+    (logging/debug (str "  authorizing " public-key-path)))
   (when init-script
     (logging/debug (str "  init script\n" init-script)))
-  (let [options (->> [:image :hardware :location :network :qos]
-                     (select-keys group)
+  (let [;; when we have an id, just use that so other keys don't prevent a
+        ;; match
+        group-spec (update-in group [:image]
+                              #(if (:image-id %)
+                                 (apply
+                                  dissoc %
+                                  (remove
+                                   (fn [kw] (= :image-id kw))
+                                   (keys @#'org.jclouds.compute2/template-map)))
+                                 %))
+        options (->> [:image :hardware :location :network :qos]
+                     (select-keys group-spec)
                      vals
                      (reduce merge))
         options (if (:default-os-family group)
                   (dissoc options :os-family) ; remove if we added in
                                               ; ensure-os-family
                   options)]
-    (logging/info (str "  options " options))
+    (logging/debug (str "  options " options))
     (let [options (if (and public-key-path
                            (not (:authorize-public-key options)))
                     (assoc options
@@ -496,12 +531,12 @@
                        str keyword)]
         (logging/infof "OS is %s" (pr-str family))
         (when (or (nil? family) (= family OsFamily/UNRECOGNIZED))
-          (throw+
-           {:type :unable-to-determine-os-type
-            :message (format
-                      (str "jclouds was unable to determine the os-family "
-                           "of the template %s")
-                      (pr-str (:image group)))}))
+          (throw
+           (Exception.
+            (format
+             (str "jclouds was unable to determine the os-family "
+                  "of the template %s")
+             (pr-str (:image group))))))
         (->
          group
          (assoc-in [:image :os-family] family)
@@ -517,6 +552,11 @@
                  (count bad-nodes)
                  node-count
                  (:group-name group-spec))
+                (doseq [[node e] bad-nodes]
+                  (logging/errorf
+                   e
+                   "Failed to start node for group %s %s"
+                   (:group-name group-spec) (.getMessage (root-cause e))))
                 (doseq [node (keys bad-nodes)]
                   (try
                     (compute/destroy-node
@@ -588,21 +628,122 @@
   pallet.environment.Environment
   (environment [_] environment))
 
+
+(defmacro if-has-credential-supplier [if-form then-form]
+  (if (try (eval 'pallet.jclouds/CREDENTIALS_SUPPLIER) (catch Exception _))
+    if-form
+    then-form))
+
+(if-has-credential-supplier
+ (defn credentials-provider [injector]
+   (.getInstance injector
+    (com.google.inject.Key/get
+     pallet.jcloudsTokens/CREDENTIALS_SUPPLIER javax.inject.Provider)))
+ (defn credentials-provider [injector]
+   (.getInstance injector
+    (com.google.inject.Key/get
+     java.lang.String
+     org.jclouds.rest.annotations.Credential))))
+
+(when-feature compute-service-properties
+  (defn compute-service-properties
+    "Return a map with the service details"
+    [^org.jclouds.compute.ComputeService compute-service]
+    (let [context (.. compute-service getContext unwrap)
+          credential (credentials-provider (.. context utils injector))]
+      {:provider :aws-ec2
+       :identity (.getIdentity context)
+       :credential credential
+       :endpoint (.. context getProviderMetadata getEndpoint)}))
+
+  (extend-type JcloudsService
+    pallet.compute/ComputeServiceProperties
+    (service-properties [compute]
+      (compute-service-properties (.compute compute)))))
+
+
+(defn resource-id [node]
+  (.getId node))
+
+(defn local-resource-id [node]
+  (let [id (.getId node)]
+    (subs id (inc (.indexOf id "/")))))
+
+(defn member-with-name [obj member-name]
+  (->> (reflect obj)
+       :members
+       (filter #(= (:name %) name))
+       first))
+
 (defmacro add-node-tag []
   (if (has-feature? taggable-nodes)
     '(do
-       (deftype JcloudsNodeTag []
+       (defn tag-filter [m]
+         (com.google.common.collect.Multimaps/forMap
+          m))
+
+       (deftype JcloudsNodeTag [apis]
          pallet.compute.NodeTagReader
          (node-tag [_ node tag-name]
-           )
+           (debugf "node-tag %s %s" (resource-id node) tag-name)
+           (if-let [api (get apis (.. node getLocation getParent getId))]
+             (let [tags (.. api
+                            (filter (tag-filter
+                                     {"resource-id" (local-resource-id node)
+                                      "key" (name tag-name)}))
+                            (toImmutableList))]
+               (when (seq tags)
+                 (let [v (.getValue (first tags))]
+                   (when (.isPresent v)
+                     (.get v)))))
+             (warnf "node-tag tagging not supported for %s"
+                    (resource-id node))))
          (node-tag [_ node tag-name default-value]
-           )
+           (debugf "node-tag %s %s %s"
+                   (resource-id node) tag-name default-value)
+           (if-let [api (get apis (.. node getLocation getParent getId))]
+             (let [tags (.. api
+                            (filter (tag-filter
+                                     {"resource-id" (local-resource-id node)
+                                      "key" (name tag-name)}))
+                            (toImmutableList))]
+               (if (seq tags)
+                 (let [v (.getValue (first tags))]
+                   (if (.isPresent v)
+                     (.get v)
+                     default-value))
+                 default-value))
+             (warnf "node-tag tagging not supported for %s"
+                    (resource-id node))))
          (node-tags [_ node]
-           )
+           (debugf "node-tags %s" (resource-id node))
+           (if-let [api (get apis (.. node getLocation getParent getId))]
+             (into {} (map
+                       #(vector (.getKey %) (let [v (.getValue %)]
+                                              (when (.isPresent v)
+                                                (.get v))))
+                       (.. api
+                           (filter
+                            (tag-filter
+                             {"resource-id" (local-resource-id node)}))
+                           (toImmutableList))))
+             (warnf "node-tags tagging not supported for %s"
+                    (resource-id node))))
+
          pallet.compute.NodeTagWriter
          (tag-node! [_ node tag-name value]
-           )
-         (node-taggable? [_ node] false))
+           (debugf "tag-node! %s %s %s" (resource-id node) tag-name value)
+           (if-let [api (get apis (.. node getLocation getParent getId))]
+             (.applyToResources
+              api
+              (java.util.HashMap. {(name tag-name) (name value)})
+              #{(local-resource-id node)})
+             (warnf "tag-node! tagging not supported for %s"
+                    (resource-id node))))
+         (node-taggable? [_ node]
+           (debugf "node-taggable? %s" (resource-id node))
+           (get apis (.. node getLocation getParent getId))))
+
        (extend-type JcloudsService
          pallet.compute/NodeTagReader
          (node-tag
@@ -618,9 +759,29 @@
          (tag-node! [compute node tag-name value]
            (compute/tag-node! (.tag_provider compute) node tag-name value))
          (node-taggable? [compute node]
-           (compute/node-taggable? (.tag_provider compute) node)))
-       (defn default-tag-provider [] (JcloudsNodeTag.)))
-    `(defn ~'default-tag-provider [] nil)))
+           (when (.tag_provider compute)
+             (compute/node-taggable? (.tag_provider compute) node))))
+
+       (defn default-tag-provider [service]
+         (logging/debugf "default-tag-provider looking for tag service")
+         (try
+           (JcloudsNodeTag.
+            (let [regions (.. service getContext unwrap getApi
+                              getConfiguredRegions)]
+              (logging/debugf "Regions for compute service %s" regions)
+              (into {}
+                    (map
+                     #(let [api (.. service getContext
+                                    unwrap getApi
+                                    (getTagApiForRegion %))]
+                        (when (.isPresent api)
+                          (logging/debugf "Found tag api for region %s" %)
+                          [% (.get api)]))
+                     regions))))
+           (catch java.lang.IllegalArgumentException e
+             (logging/debugf e "TagApi not supported")
+             (logging/tracef e "While trying to get TagApi")))))
+    `(defn ~'default-tag-provider [_#] nil)))
 
 (add-node-tag)
 
@@ -703,8 +864,7 @@
 (defmethod implementation/service :default
   [provider {:keys [identity credential extensions endpoint environment
                     tag-provider]
-             :or {extensions (default-jclouds-extensions provider)
-                  tag-provider (default-tag-provider)}
+             :or {extensions (default-jclouds-extensions provider)}
              :as options}]
   (logging/debugf "extensions %s" (pr-str extensions))
   (let [options (dissoc
@@ -712,13 +872,14 @@
                  :identity :credential :extensions :blobstore :environment)
         options (interleave
                  (map #(option-key provider %) (keys options))
-                 (vals options))]
+                 (vals options))
+        service (apply
+                 jclouds/compute-service
+                 (name provider) identity credential
+                 :extensions extensions
+                 options)]
     (logging/debugf "options %s" (pr-str (vec options)))
     (JcloudsService.
-     (apply
-      jclouds/compute-service
-      (name provider) identity credential
-      :extensions extensions
-      options)
+     service
      environment
-     tag-provider)))
+     (or tag-provider (default-tag-provider service)))))

@@ -21,10 +21,10 @@
    [clojure.string :as string])
   (:use
    clojure.test
-   [pallet.actions :only [exec-script]]
+   [pallet.actions :only [exec-script assoc-settings]]
    [pallet.api :only [cluster-spec group-spec plan-fn server-spec
                       lift converge]]
-   [pallet.crate :only [assoc-settings get-settings]]
+   [pallet.crate :only [get-settings]]
    [pallet.core.user :only [*admin-user*]]
    [pallet.algo.fsmop :only [failed? operate]]
    [pallet.test-utils :only [script-action clj-action test-session]]
@@ -72,8 +72,8 @@
           [action seen?] (seen-fn "destroy-server")
           [action-g seen-g?] (seen-fn "destroy-group")
           spec (core/group-spec :aaa :count 0
-                                :phases {:destroy-server (action)
-                                         :destroy-group (action-g)})
+                                :phases {:destroy-server (plan-fn (action))
+                                         :destroy-group (plan-fn (action-g))})
           servers [(assoc spec :node node)]]
       (is (= 1 (count nodes)))
       (let [op (operate
@@ -101,8 +101,8 @@
           [action seen?] (seen-fn "destroy-server")
           [action-g seen-g?] (seen-fn "destroy-group")
           spec (core/group-spec :aaa :count 1
-                                :phases {:destroy-server (action)
-                                         :destroy-group (action-g)})
+                                :phases {:destroy-server (plan-fn (action))
+                                         :destroy-group (plan-fn (action-g))})
           servers (map #(assoc spec :node %) nodes)]
       (is (= 2 (count nodes)))
       (let [op (operate
@@ -125,7 +125,7 @@
     (let [service (jclouds-test-utils/compute)
           nodes (compute/nodes service)
           [action-g seen-g?] (seen-fn "create-group")
-          spec {:phases {:create-group (action-g)}}]
+          spec {:phases {:create-group (plan-fn (action-g))}}]
       (is (zero? (count nodes)))
       (let [op (operate
                 (operations/node-count-adjuster
@@ -145,7 +145,7 @@
   (testing "operation/lift"
     (let [[localf seen?] (seen-fn "lift-test")
           spec (server-spec
-                :phases {:p1 (plan-fn (exec-script (ls "/")))
+                :phases {:p1 (plan-fn (exec-script ("ls" "/")))
                          :p2 (plan-fn (localf))})
           local (group-spec
                  "local"
@@ -174,7 +174,7 @@
     (let [local (group-spec "local" :image {:os-family :ubuntu})
           [localf seen?] (seen-fn "lift-test")
           result (lift {local (jclouds/make-localhost-node)}
-                       :phase [(plan-fn (exec-script (ls "/")))
+                       :phase [(plan-fn (exec-script ("ls" "/")))
                                (plan-fn (localf))]
                        :user (assoc *admin-user*
                                :username (test-utils/test-username)
@@ -191,8 +191,8 @@
 (deftest lift2-test
   (let [[localf seen?] (seen-fn "lift2-test")
         [localfy seeny?] (seen-fn "lift2-test y")
-        x1 (group-spec :x1 :phases {:configure (localf)})
-        y1 (group-spec :y1 :phases {:configure (localfy)})
+        x1 (group-spec :x1 :phases {:configure (plan-fn (localf))})
+        y1 (group-spec :y1 :phases {:configure (plan-fn (localfy))})
         result (lift {x1 (jclouds/make-unmanaged-node "x" "localhost")
                       y1 (jclouds/make-unmanaged-node "y" "localhost")}
                      :user (assoc *admin-user*
@@ -211,7 +211,7 @@
         _   (jclouds-test-utils/purge-compute-service compute)
         hi (script-action [session] ["Hi" session])
         id "c-t"
-        node (group-spec "c-t" :phases {:configure (hi)})
+        node (group-spec "c-t" :phases {:configure (plan-fn (hi))})
         op (converge {node 2}
                      :compute compute
                      :environment {:algorithms
@@ -269,23 +269,15 @@
 (deftest lift-with-runtime-params-test
   ;; test that parameters set at execution time are propogated
   ;; between phases
-  (let [assoc-runtime-param (clj-action
-                                [session]
-                              ((assoc-settings :test {:x "x"} {}) session))
-        get-runtime-param (script-action
+  (let [get-runtime-param (script-action
                               [session]
                             [[{:language :bash}
-                              (format
-                               "echo %s"
-                               (->
-                                ((get-settings :test {}) session)
-                                first
-                                :x))]
+                              (format "echo %s" (:x (get-settings :test)))]
                              session])
         node (group-spec
               "localhost"
-              :phases {:configure (assoc-runtime-param)
-                       :configure2 (get-runtime-param)})
+              :phases {:configure (plan-fn (assoc-settings :test {:x "x"}))
+                       :configure2 (plan-fn (get-runtime-param))})
         op (lift {node (jclouds/make-localhost-node)}
                  :phase [:configure :configure2]
                  :user (assoc *admin-user*
@@ -362,9 +354,9 @@
           tag-value {:a 1}]
       (is (not (failed? op)))
       (is node)
-      (is (nil? (node/tag node tag-name)))
-      (is (not (some #(= tag-name %) (node/tags node))))
       (when (node/taggable? node)
+        (is (nil? (node/tag node tag-name)))
+        (is (not (some #(= tag-name %) (node/tags node))))
         (node/tag! node tag-name tag-value)
         (is (= tag-value (node/tag node tag-name)))
         (is (some #(= tag-name %) (node/tags node)))))))
