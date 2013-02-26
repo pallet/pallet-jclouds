@@ -630,7 +630,11 @@
 
 
 (defmacro if-has-credential-supplier [if-form then-form]
-  (if (try (eval 'pallet.jclouds/CREDENTIALS_SUPPLIER) (catch Exception _))
+  (if (try
+        (import 'pallet.jclouds.Tokens)
+        (eval 'pallet.jclouds.Tokens/CREDENTIALS_SUPPLIER)
+        (catch Exception e
+          (logging/error e "Failed to find credentials supplier")))
     if-form
     then-form))
 
@@ -638,7 +642,7 @@
  (defn credentials-provider [injector]
    (.getInstance injector
     (com.google.inject.Key/get
-     pallet.jcloudsTokens/CREDENTIALS_SUPPLIER javax.inject.Provider)))
+     pallet.jclouds.Tokens/CREDENTIALS_SUPPLIER javax.inject.Provider)))
  (defn credentials-provider [injector]
    (.getInstance injector
     (com.google.inject.Key/get
