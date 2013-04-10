@@ -778,9 +778,11 @@
                      #(let [api (.. service getContext
                                     unwrap getApi
                                     (getTagApiForRegion %))]
-                        (when (.isPresent api)
-                          (logging/debugf "Found tag api for region %s" %)
-                          [% (.get api)]))
+                        (if (.isPresent api)
+                          (do (logging/debugf "Found tag api for region %s" %)
+                              [% (.get api)])
+                          (logging/warnf
+                           "Failed to find tag api for region %s" %)))
                      regions))))
            (catch java.lang.IllegalArgumentException e
              (logging/debugf e "TagApi not supported")
