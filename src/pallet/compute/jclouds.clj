@@ -759,13 +759,15 @@
          pallet.compute/NodeTagReader
          (node-tag
            ([compute node tag-name]
-              (compute/node-tag
-               (.tag_provider compute) node tag-name))
+              (when-let [p (.tag_provider compute)]
+                (compute/node-tag p node tag-name)))
            ([compute node tag-name default-value]
-              (compute/node-tag
-               (.tag_provider compute) node tag-name default-value)))
+              (if-let [p (.tag_provider compute)]
+                (compute/node-tag p node tag-name default-value)
+                default-value)))
          (node-tags [compute node]
-           (compute/node-tags (.tag_provider compute) node))
+           (when-let [p (.tag_provider compute)]
+             (compute/node-tags p node)))
          pallet.compute/NodeTagWriter
          (tag-node! [compute node tag-name value]
            (compute/tag-node! (.tag_provider compute) node tag-name value))
