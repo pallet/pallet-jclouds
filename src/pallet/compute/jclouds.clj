@@ -478,7 +478,8 @@
       (jclouds/build-template compute options))))
 
 (deftype JcloudsService
-    [^org.jclouds.compute.ComputeService compute environment tag-provider]
+    [^org.jclouds.compute.ComputeService compute
+     environment provider-kw tag-provider]
 
   ;; implement jclouds ComputeService by forwarding
   org.jclouds.compute.ComputeService
@@ -652,10 +653,10 @@
 (when-feature compute-service-properties
   (defn compute-service-properties
     "Return a map with the service details"
-    [^org.jclouds.compute.ComputeService compute-service]
+    [^org.jclouds.compute.ComputeService compute-service provider-kw]
     (let [context (.. compute-service getContext unwrap)
           credential (credentials-provider (.. context utils injector))]
-      {:provider :aws-ec2
+      {:provider provider-kw
        :identity (.getIdentity context)
        :credential credential
        :endpoint (.. context getProviderMetadata getEndpoint)}))
@@ -663,7 +664,7 @@
   (extend-type JcloudsService
     pallet.compute/ComputeServiceProperties
     (service-properties [compute]
-      (compute-service-properties (.compute compute)))))
+      (compute-service-properties (.compute compute) (.provider_kw compute)))))
 
 
 (defn resource-id [node]
@@ -888,4 +889,5 @@
     (JcloudsService.
      service
      environment
+     (keyword (name provider))
      (or tag-provider (default-tag-provider service)))))
