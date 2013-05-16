@@ -639,16 +639,22 @@
     if-form
     then-form))
 
+(defn old-credentials-provider [injector]
+  (.getInstance injector
+                (com.google.inject.Key/get
+                 java.lang.String
+                 org.jclouds.rest.annotations.Credential)))
+
 (if-has-credential-supplier
  (defn credentials-provider [injector]
-   (.getInstance injector
-    (com.google.inject.Key/get
-     pallet.jclouds.Tokens/CREDENTIALS_SUPPLIER javax.inject.Provider)))
+   (or (try
+         (.getInstance injector
+                       (com.google.inject.Key/get
+                        pallet.jclouds.Tokens/CREDENTIALS_SUPPLIER))
+         (catch Exception _))
+       (old-credentials-provider injector)))
  (defn credentials-provider [injector]
-   (.getInstance injector
-    (com.google.inject.Key/get
-     java.lang.String
-     org.jclouds.rest.annotations.Credential))))
+   (old-credentials-provider injector)))
 
 (when-feature compute-service-properties
   (defn compute-service-properties
