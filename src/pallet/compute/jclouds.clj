@@ -632,29 +632,27 @@
 
 (defmacro if-has-credential-supplier [if-form then-form]
   (if (try
-        (import 'pallet.jclouds.Tokens)
-        (eval 'pallet.jclouds.Tokens/CREDENTIALS_SUPPLIER)
+        (import 'org.jclouds.rest.annotations.Credential)
+        true
         (catch Exception e
-          (logging/error e "Failed to find credentials supplier")))
-    if-form
-    then-form))
-
-(defn old-credentials-provider [injector]
-  (.getInstance injector
-                (com.google.inject.Key/get
-                 java.lang.String
-                 org.jclouds.rest.annotations.Credential)))
+          (logging/debug
+           "Failed to find credentials annotation, using credentials supplier")
+          (logging/trace e "Failed to find credentials annotation")
+          (import 'pallet.jclouds.Tokens)
+          nil))
+    then-form
+    if-form))
 
 (if-has-credential-supplier
  (defn credentials-provider [injector]
-   (or (try
-         (.getInstance injector
-                       (com.google.inject.Key/get
-                        pallet.jclouds.Tokens/CREDENTIALS_SUPPLIER))
-         (catch Exception _))
-       (old-credentials-provider injector)))
+   (.getInstance injector
+                 (com.google.inject.Key/get
+                  pallet.jclouds.Tokens/CREDENTIALS_SUPPLIER)))
  (defn credentials-provider [injector]
-   (old-credentials-provider injector)))
+   (.getInstance injector
+                 (com.google.inject.Key/get
+                  java.lang.String
+                  org.jclouds.rest.annotations.Credential))))
 
 (when-feature compute-service-properties
   (defn compute-service-properties
