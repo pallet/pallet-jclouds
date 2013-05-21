@@ -13,7 +13,7 @@
   "Use jcloud's stub compute service, or some other if specified"
   ([] (compute-service "stub" "x" "x"))
   ([service account key & options]
-     (apply pallet.compute/compute-service
+     (apply pallet.compute/instantiate-provider
             service :identity account :credential key
             options)))
 

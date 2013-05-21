@@ -478,7 +478,8 @@
       (jclouds/build-template compute options))))
 
 (deftype JcloudsService
-    [^org.jclouds.compute.ComputeService compute environment tag-provider]
+    [^org.jclouds.compute.ComputeService compute
+     environment provider-kw tag-provider]
 
   ;; implement jclouds ComputeService by forwarding
   org.jclouds.compute.ComputeService
@@ -630,28 +631,36 @@
 
 
 (defmacro if-has-credential-supplier [if-form then-form]
-  (if (try (eval 'pallet.jclouds/CREDENTIALS_SUPPLIER) (catch Exception _))
-    if-form
-    then-form))
+  (if (try
+        (import 'org.jclouds.rest.annotations.Credential)
+        true
+        (catch Exception e
+          (logging/debug
+           "Failed to find credentials annotation, using credentials supplier")
+          (logging/trace e "Failed to find credentials annotation")
+          (import 'pallet.jclouds.Tokens)
+          nil))
+    then-form
+    if-form))
 
 (if-has-credential-supplier
  (defn credentials-provider [injector]
    (.getInstance injector
-    (com.google.inject.Key/get
-     pallet.jcloudsTokens/CREDENTIALS_SUPPLIER javax.inject.Provider)))
+                 (com.google.inject.Key/get
+                  pallet.jclouds.Tokens/CREDENTIALS_SUPPLIER)))
  (defn credentials-provider [injector]
    (.getInstance injector
-    (com.google.inject.Key/get
-     java.lang.String
-     org.jclouds.rest.annotations.Credential))))
+                 (com.google.inject.Key/get
+                  java.lang.String
+                  org.jclouds.rest.annotations.Credential))))
 
 (when-feature compute-service-properties
   (defn compute-service-properties
     "Return a map with the service details"
-    [^org.jclouds.compute.ComputeService compute-service]
+    [^org.jclouds.compute.ComputeService compute-service provider-kw]
     (let [context (.. compute-service getContext unwrap)
           credential (credentials-provider (.. context utils injector))]
-      {:provider :aws-ec2
+      {:provider provider-kw
        :identity (.getIdentity context)
        :credential credential
        :endpoint (.. context getProviderMetadata getEndpoint)}))
@@ -659,7 +668,7 @@
   (extend-type JcloudsService
     pallet.compute/ComputeServiceProperties
     (service-properties [compute]
-      (compute-service-properties (.compute compute)))))
+      (compute-service-properties (.compute compute) (.provider_kw compute)))))
 
 
 (defn resource-id [node]
@@ -748,13 +757,15 @@
          pallet.compute/NodeTagReader
          (node-tag
            ([compute node tag-name]
-              (compute/node-tag
-               (.tag_provider compute) node tag-name))
+              (when-let [p (.tag_provider compute)]
+                (compute/node-tag p node tag-name)))
            ([compute node tag-name default-value]
-              (compute/node-tag
-               (.tag_provider compute) node tag-name default-value)))
+              (if-let [p (.tag_provider compute)]
+                (compute/node-tag p node tag-name default-value)
+                default-value)))
          (node-tags [compute node]
-           (compute/node-tags (.tag_provider compute) node))
+           (when-let [p (.tag_provider compute)]
+             (compute/node-tags p node)))
          pallet.compute/NodeTagWriter
          (tag-node! [compute node tag-name value]
            (compute/tag-node! (.tag_provider compute) node tag-name value))
@@ -774,9 +785,11 @@
                      #(let [api (.. service getContext
                                     unwrap getApi
                                     (getTagApiForRegion %))]
-                        (when (.isPresent api)
-                          (logging/debugf "Found tag api for region %s" %)
-                          [% (.get api)]))
+                        (if (.isPresent api)
+                          (do (logging/debugf "Found tag api for region %s" %)
+                              [% (.get api)])
+                          (logging/warnf
+                           "Failed to find tag api for region %s" %)))
                      regions))))
            (catch java.lang.IllegalArgumentException e
              (logging/debugf e "TagApi not supported")
@@ -882,4 +895,5 @@
     (JcloudsService.
      service
      environment
+     (keyword (name provider))
      (or tag-provider (default-tag-provider service)))))

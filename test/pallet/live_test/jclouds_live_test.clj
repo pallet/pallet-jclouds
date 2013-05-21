@@ -22,7 +22,8 @@
                   :phases {}}}))))
 
 (deftest live-test-test
-  (let [compute (compute/compute-service "stub" :identity "x" :credential "x")]
+  (let [compute (compute/instantiate-provider
+                 "stub" :identity "x" :credential "x")]
     (purge-compute-service compute)
     (live-test/set-service! compute)
     (testing "without prefix"

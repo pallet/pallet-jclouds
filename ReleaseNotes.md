@@ -1,5 +1,19 @@
 # Release Notes
 
+# 1.5.3
+
+- Use lein and publish to com.palletops on clojars
+
+- Make tag queries return nil if tags unsupported
+
+- Report correct provider in service-properties
+
+- Improve logging around tag api acquisition
+
+- Fix issues with jclouds 1.5.6 support
+
+- Update tests for latest pallet 0.8.0
+
 # 1.5.2
 
 ## Features
