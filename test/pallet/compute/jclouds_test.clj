@@ -2,7 +2,7 @@
   (:use
    clojure.test
    [pallet.core :only [server-spec]]
-   [pallet.compute :only [nodes compute-service]]
+   [pallet.compute :only [nodes instantiate-provider]]
    [pallet.crate.automated-admin-user :only [automated-admin-user]]
    [pallet.live-test :only [images test-for test-nodes]])
   (:require
@@ -97,7 +97,7 @@
           :phases
           {:bootstrap (plan-fn (automated-admin-user))}
           :image image :count 1)}
-      (let [service (compute-service :vmfest)
+      (let [service (instantiate-provider :vmfest)
             node (first (:vmfest-test-host node-map))]
         (clojure.tools.logging/infof "node-map %s" node-map)
         (is node)

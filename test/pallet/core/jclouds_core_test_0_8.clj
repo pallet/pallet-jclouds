@@ -82,7 +82,9 @@
                  [spec]
                  servers
                  {}
-                 {}))
+                 {}
+                 servers
+                 (core-api/environment-execution-settings)))
             {:keys [old-nodes targets]} @op]
         (is (not (failed? op)))
         (is (seen?))
@@ -111,7 +113,9 @@
                  [spec]
                  servers
                  {}
-                 {}))
+                 {}
+                 servers
+                 (core-api/environment-execution-settings)))
             {:keys [old-nodes targets]} @op]
         (is (not (failed? op)))
         (is (seen?))
@@ -133,7 +137,9 @@
                  [(core/group-spec :aaa :count 1 :extends [spec])]
                  []
                  {}
-                 {}))
+                 {}
+                 nil
+                 (core-api/environment-execution-settings)))
             {:keys [new-nodes targets]} @op]
         (is (not (failed? op)))
         (is (seen-g?))
@@ -155,10 +161,11 @@
       (let [op (operate
                 (operations/lift
                  targets
-                 [:p1 :p2]
                  {:user (assoc *admin-user*
                           :username (test-utils/test-username)
                           :no-sudo true)}
+                 {}
+                 [:p1 :p2]
                  {}))
             {:keys [results targets plan-state]} @op]
         (is (not (failed? op)))
@@ -179,7 +186,8 @@
                        :user (assoc *admin-user*
                                :username (test-utils/test-username)
                                :no-sudo true)
-                       :compute nil)
+                       :compute nil
+                       :async true)
           {:keys [error results targets]} @result]
       (is (not (failed? result)))
       (is (not error))
@@ -198,7 +206,8 @@
                      :user (assoc *admin-user*
                              :username (test-utils/test-username)
                              :no-sudo true)
-                     :compute nil)
+                     :compute nil
+                     :async true)
         {:keys [error results targets]} @result]
     (is (not (failed? result)))
     (is (not error))
@@ -215,7 +224,8 @@
         op (converge {node 2}
                      :compute compute
                      :environment {:algorithms
-                                   {:executor executors/echo-executor}})
+                                   {:executor executors/echo-executor}}
+                     :async true)
         {:keys [results error targets exception]} @op]
     (is (not (failed? op)))
     (is (nil? exception))
@@ -232,7 +242,8 @@
       (let [op (converge {node 1}
                          :compute compute
                          :environment {:algorithms
-                                       {:executor executors/echo-executor}})
+                                       {:executor executors/echo-executor}}
+                         :async true)
             {:keys [results error targets]} @op]
         (is (= 1 (count (running-nodes (map :node targets)))))
         (is (= 1 (count (running-nodes (compute/nodes compute)))))
@@ -283,7 +294,8 @@
                  :user (assoc *admin-user*
                          :username (test-utils/test-username)
                          :no-sudo true)
-                 :compute (jclouds-test-utils/compute-service))
+                 :compute (jclouds-test-utils/compute-service)
+                 :async true)
         {:keys [results error targets]} @op]
     (is (not (failed? op)))
     (let [{:keys [out err exit]} (->
@@ -307,7 +319,7 @@
                             (group-spec
                              "g2" :count 2 :image {:os-family :ubuntu})])]
       (testing "converge-cluster"
-        (let [op (converge cluster :compute compute)
+        (let [op (converge cluster :compute compute :async true)
               {:keys [results error targets exception new-nodes old-nodes]} @op]
           (is (not (failed? op)))
           (when exception
@@ -318,7 +330,7 @@
         (is (= 3 (count
                   (running-nodes (compute/nodes compute))))))
       (testing "lift-cluster"
-        (let [op (lift cluster :compute compute)
+        (let [op (lift cluster :compute compute :async true)
               {:keys [results error targets exception new-nodes old-nodes]} @op]
           (is (not (failed? op)))
           (when exception
@@ -330,7 +342,7 @@
         (is (= 3 (count
                   (running-nodes (compute/nodes compute))))))
       (testing "destroy-cluster"
-        (let [op (converge {cluster 0} :compute compute)
+        (let [op (converge {cluster 0} :compute compute :async true)
               {:keys [results error targets exception new-nodes old-nodes]} @op]
           (is (not (failed? op)))
           (when exception
@@ -347,7 +359,7 @@
     (let [compute (jclouds-test-utils/compute-service)
           _   (jclouds-test-utils/purge-compute-service compute)
           group (group-spec "tagtest")
-          op (converge {group 1} :compute compute)
+          op (converge {group 1} :compute compute :async true)
           {:keys [results error targets exception]} @op
           node (first (compute/nodes compute))
           tag-name "tag-test"
