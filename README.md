@@ -38,15 +38,13 @@ jclouds 1.4.x
 : pallet-jclouds-1.4.2
 
 jclouds 1.5.x
-: pallet-jclouds-1.5.2 (jclouds 1.5.5)
+: pallet-jclouds-1.5.3 (jclouds 1.5.5)
 
 ### lein project.clj
 
 ```clojure
-:dependencies [[org.cloudhoist/pallet "0.7.2"]
-               [org.cloudhoist/pallet-jclouds "1.5.2"]]
-:repositories {"sonatype"
-               "http://oss.sonatype.org/content/repositories/releases"}
+:dependencies [[com.palletops/pallet "0.8.0-beta.10"]
+               [com.palletops/pallet-jclouds "1.5.3"]]
 ```
 
 ### maven pom.xml
@@ -54,21 +52,21 @@ jclouds 1.5.x
 ```xml
 <dependencies>
   <dependency>
-    <groupId>org.cloudhoist</groupId>
+    <groupId>com.palletops</groupId>
     <artifactId>pallet</artifactId>
-    <version>0.7.2</version>
+    <version>0.8.0-beta.10</version>
   </dependency>
   <dependency>
-    <groupId>org.cloudhoist</groupId>
+    <groupId>com.palletops</groupId>
     <artifactId>pallet-jclouds</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
   </dependency>
 <dependencies>
 
 <repositories>
   <repository>
-    <id>sonatype</id>
-    <url>http://oss.sonatype.org/content/repositories/releases</url>
+    <id>clojars</id>
+    <url>http://clojars.org/repo</url>
   </repository>
 </repositories>
 ```

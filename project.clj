@@ -2,7 +2,7 @@
 (def pallet-ver "0.8.0-beta.10")
 (def jclouds-ver "1.5.5")
 
-(defproject com.palletops/pallet-jclouds "1.5.3-SNAPSHOT"
+(defproject com.palletops/pallet-jclouds "1.5.3"
   :description "A pallet provider for using jclouds."
   :url "https://github.com/pallet/pallet-vmfest"
   :license {:name "Eclipse Public License"
