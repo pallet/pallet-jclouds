@@ -57,7 +57,11 @@
 
 ;;; Meta
 (defn supported-providers []
-  (ComputeServiceUtils/getSupportedProviders))
+  (set
+   (map #(.getId %)
+        (concat
+         (org.jclouds.apis.Apis/viewableAs org.jclouds.compute.ComputeServiceContext)
+         (org.jclouds.providers.Providers/viewableAs org.jclouds.compute.ComputeServiceContext)))))
 
 ;;;; Compute service
 (defn default-jclouds-extensions
