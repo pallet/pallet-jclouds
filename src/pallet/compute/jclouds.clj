@@ -19,7 +19,7 @@
    [clojure.tools.logging :as logging])
   (:import
    [org.jclouds.compute.domain.internal HardwareImpl ImageImpl NodeMetadataImpl]
-   org.jclouds.compute.util.ComputeServiceUtils
+   org.jclouds.compute.ComputeServiceContext
    org.jclouds.compute.ComputeService
    org.jclouds.compute.options.RunScriptOptions
    org.jclouds.compute.options.TemplateOptions
@@ -60,8 +60,8 @@
   (set
    (map #(.getId %)
         (concat
-         (org.jclouds.apis.Apis/viewableAs org.jclouds.compute.ComputeServiceContext)
-         (org.jclouds.providers.Providers/viewableAs org.jclouds.compute.ComputeServiceContext)))))
+         (org.jclouds.apis.Apis/viewableAs ComputeServiceContext)
+         (org.jclouds.providers.Providers/viewableAs ComputeServiceContext)))))
 
 ;;;; Compute service
 (defn default-jclouds-extensions
