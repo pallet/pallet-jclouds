@@ -557,6 +557,7 @@
               [e]
               (let [bad-nodes (.getNodeErrors e)]
                 (logging/warnf
+                  e
                  "Failed to start %s of %s nodes for group %s"
                  (count bad-nodes)
                  node-count
