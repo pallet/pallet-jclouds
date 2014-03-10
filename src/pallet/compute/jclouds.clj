@@ -707,7 +707,7 @@
                             (filter (tag-filter
                                      {"resource-id" (local-resource-id node)
                                       "key" (name tag-name)}))
-                            (toImmutableList))]
+                            (toList))]
                (when (seq tags)
                  (let [v (.getValue (first tags))]
                    (when (.isPresent v)
@@ -722,7 +722,7 @@
                             (filter (tag-filter
                                      {"resource-id" (local-resource-id node)
                                       "key" (name tag-name)}))
-                            (toImmutableList))]
+                            (toList))]
                (if (seq tags)
                  (let [v (.getValue (first tags))]
                    (if (.isPresent v)
@@ -742,7 +742,7 @@
                            (filter
                             (tag-filter
                              {"resource-id" (local-resource-id node)}))
-                           (toImmutableList))))
+                           (toList))))
              (warnf "node-tags tagging not supported for %s"
                     (resource-id node))))
 
