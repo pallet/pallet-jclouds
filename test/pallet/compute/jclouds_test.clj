@@ -10,7 +10,7 @@
    [pallet.compute.jclouds :as jclouds]
    [pallet.compute :as compute]
    [pallet.node :as node])
-  (:import [org.jclouds.compute.domain NodeState OsFamily OperatingSystem]))
+  (:import [org.jclouds.compute.domain NodeMetadata OsFamily OperatingSystem]))
 
 (try
   (use '[pallet.api :only [plan-fn]])
@@ -36,9 +36,14 @@
 
 (deftest running?-test
   (is (not (node/running?
-            (jclouds/make-node "a" :state NodeState/TERMINATED))))
+            (jclouds/make-node
+             "a"
+             :state
+             org.jclouds.compute.domain.NodeMetadata$Status/TERMINATED))))
   (is (node/running?
-       (jclouds/make-node "a" :state NodeState/RUNNING))))
+       (jclouds/make-node
+        "a"
+        :state org.jclouds.compute.domain.NodeMetadata$Status/RUNNING))))
 
 (deftest os-version-test
   (is (= "Some version"
