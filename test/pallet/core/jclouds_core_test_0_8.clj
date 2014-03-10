@@ -30,7 +30,7 @@
    [pallet.test-utils :only [script-action clj-action test-session]]
    [pallet.action-plan :only [stop-execution-on-error]]
    [pallet.feature :only [when-feature]])
-  (:import [org.jclouds.compute.domain NodeState OperatingSystem OsFamily]))
+  (:import [org.jclouds.compute.domain NodeMetadata OperatingSystem OsFamily]))
 
 ;; Allow running against other compute services if required
 (def ^{:dynamic true} *compute-service* ["stub" "x" "x" ])
@@ -161,10 +161,10 @@
       (let [op (operate
                 (operations/lift
                  targets
+                 {}
                  {:user (assoc *admin-user*
                           :username (test-utils/test-username)
                           :no-sudo true)}
-                 {}
                  [:p1 :p2]
                  {}))
             {:keys [results targets plan-state]} @op]
@@ -186,6 +186,7 @@
                        :user (assoc *admin-user*
                                :username (test-utils/test-username)
                                :no-sudo true)
+                       :os-detect false
                        :compute nil
                        :async true)
           {:keys [error results targets]} @result]
@@ -207,6 +208,7 @@
                              :username (test-utils/test-username)
                              :no-sudo true)
                      :compute nil
+                     :os-detect false
                      :async true)
         {:keys [error results targets]} @result]
     (is (not (failed? result)))
@@ -225,6 +227,7 @@
                      :compute compute
                      :environment {:algorithms
                                    {:executor executors/echo-executor}}
+                     :os-detect false
                      :async true)
         {:keys [results error targets exception]} @op]
     (is (not (failed? op)))
@@ -243,6 +246,7 @@
                          :compute compute
                          :environment {:algorithms
                                        {:executor executors/echo-executor}}
+                         :os-detect false
                          :async true)
             {:keys [results error targets]} @op]
         (is (= 1 (count (running-nodes (map :node targets)))))
@@ -273,6 +277,7 @@
       (let [session (converge
                      {node 0}
                      :compute compute
+                     :os-detect false
                      :environment {:algorithms
                                    {:executor executors/echo-executor}})]
         (is (= 0 (count (running-nodes (:all-nodes session)))))))))
@@ -294,6 +299,7 @@
                  :user (assoc *admin-user*
                          :username (test-utils/test-username)
                          :no-sudo true)
+                 :os-detect false
                  :compute (jclouds-test-utils/compute-service)
                  :async true)
         {:keys [results error targets]} @op]
@@ -319,7 +325,7 @@
                             (group-spec
                              "g2" :count 2 :image {:os-family :ubuntu})])]
       (testing "converge-cluster"
-        (let [op (converge cluster :compute compute :async true)
+        (let [op (converge cluster :compute compute :async true :os-detect false)
               {:keys [results error targets exception new-nodes old-nodes]} @op]
           (is (not (failed? op)))
           (when exception
@@ -330,7 +336,7 @@
         (is (= 3 (count
                   (running-nodes (compute/nodes compute))))))
       (testing "lift-cluster"
-        (let [op (lift cluster :compute compute :async true)
+        (let [op (lift cluster :compute compute :async true :os-detect false)
               {:keys [results error targets exception new-nodes old-nodes]} @op]
           (is (not (failed? op)))
           (when exception
@@ -342,7 +348,7 @@
         (is (= 3 (count
                   (running-nodes (compute/nodes compute))))))
       (testing "destroy-cluster"
-        (let [op (converge {cluster 0} :compute compute :async true)
+        (let [op (converge {cluster 0} :compute compute :async true :os-detect false)
               {:keys [results error targets exception new-nodes old-nodes]} @op]
           (is (not (failed? op)))
           (when exception
@@ -359,7 +365,7 @@
     (let [compute (jclouds-test-utils/compute-service)
           _   (jclouds-test-utils/purge-compute-service compute)
           group (group-spec "tagtest")
-          op (converge {group 1} :compute compute :async true)
+          op (converge {group 1} :compute compute :async true :os-detect false)
           {:keys [results error targets exception]} @op
           node (first (compute/nodes compute))
           tag-name "tag-test"

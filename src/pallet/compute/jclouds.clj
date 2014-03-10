@@ -24,7 +24,7 @@
    org.jclouds.compute.options.RunScriptOptions
    org.jclouds.compute.options.TemplateOptions
    [org.jclouds.compute.domain
-    NodeState NodeMetadata Image OperatingSystem OsFamily Hardware Template
+    NodeMetadata Image OperatingSystem OsFamily Hardware Template
     HardwareBuilder NodeMetadataBuilder ImageBuilder]
    [org.jclouds.domain Location LoginCredentials]
    org.jclouds.io.Payload
@@ -143,7 +143,7 @@
         (hardware hardware)
         (imageId image-id)
         (operatingSystem os)
-        (state state)
+        (status state)
         (loginPort login-port)
         (publicAddresses public-ips)
         (privateAddresses private-ips)
@@ -314,10 +314,9 @@
   (getHardware [_] (.getHardware node))
   (getImageId [_] (.getImageId node))
   (getOperatingSystem [_] (.getOperatingSystem node))
-  (getState [_] (.getState node))
   (getLoginPort [_] (.getLoginPort node))
-  (getAdminPassword [_] (.getAdminPassword node))
-  (getCredentials [_] (.getCredentials node))
+  ;; (getAdminPassword [_] (.getAdminPassword node))
+  ;; (getCredentials [_] (.getCredentials node))
   (getPublicAddresses [_] (.getPublicAddresses node))
   (getPrivateAddresses [_] (.getPrivateAddresses node))
 
@@ -402,7 +401,7 @@
       (if-let [os (options :operating-system)]
         (if (map? os) (make-operating-system os) os)
         (make-operating-system {}))
-      (options :state NodeState/RUNNING)
+      (options :state org.jclouds.compute.domain.NodeMetadata$Status/RUNNING)
       (options :login-port 22)
       (options :public-ips [])
       (options :private-ips [])
@@ -437,7 +436,7 @@
       (if-let [os (options :operating-system)]
         (if (map? os) (make-operating-system os) os)
         (make-operating-system {}))
-      (get options :state NodeState/RUNNING)
+      (get options :state org.jclouds.compute.domain.NodeMetadata$Status/RUNNING)
       (options :login-port 22)
       (conj (get options :public-ips []) host-or-ip)
       (options :private-ips [])
@@ -857,7 +856,7 @@
                  (not (= (.getDescription location) (.getId location))))
         (.getDescription location)))
     (os-string (.getOperatingSystem node))
-    (.getState node)
+    (.getStatus node)
     (apply
      str (interpose ", " (.getPublicAddresses node)))
     (apply
