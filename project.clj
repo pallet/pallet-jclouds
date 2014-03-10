@@ -1,6 +1,6 @@
 (def clojure-ver "1.4.0")
 (def pallet-ver "0.8.0-RC.8")
-(def jclouds-ver "1.5.5")
+(def jclouds-ver "1.7.1")
 
 (defproject com.palletops/pallet-jclouds "1.7.0-SNAPSHOT"
   :description "A pallet provider for using jclouds."
@@ -11,14 +11,14 @@
   :java-source-paths ["src"]
   :dependencies [[org.clojure/clojure ~clojure-ver :scope "provided"]
                  [com.palletops/pallet ~pallet-ver :scope "provided"]
-                 [org.jclouds/jclouds-compute ~jclouds-ver]
-                 [org.jclouds/jclouds-blobstore ~jclouds-ver]]
+                 [org.apache.jclouds/jclouds-compute ~jclouds-ver]
+                 [org.apache.jclouds/jclouds-blobstore ~jclouds-ver]]
 
   ;; You will need the jclouds provider specific jars for your project
   ;; The simplest is to pull in everything, but you can use individual
   ;; provider dependencies.
 
   :classifiers {:all {:dependencies
-                      [[org.jclouds/jclouds-all ~jclouds-ver]
-                       [org.jclouds.driver/jclouds-sshj ~jclouds-ver]
-                       [org.jclouds.driver/jclouds-slf4j ~jclouds-ver]]}})
+                      [[org.apache.jclouds/jclouds-all ~jclouds-ver]
+                       [org.apache.jclouds.driver/jclouds-sshj ~jclouds-ver]
+                       [org.apache.jclouds.driver/jclouds-slf4j ~jclouds-ver]]}})

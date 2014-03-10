@@ -30,7 +30,7 @@
    [pallet.test-utils :only [script-action clj-action test-session]]
    [pallet.action-plan :only [stop-execution-on-error]]
    [pallet.feature :only [when-feature]])
-  (:import [org.jclouds.compute.domain NodeState OperatingSystem OsFamily]))
+  (:import [org.jclouds.compute.domain NodeMetadata OperatingSystem OsFamily]))
 
 ;; Allow running against other compute services if required
 (def ^{:dynamic true} *compute-service* ["stub" "x" "x" ])
