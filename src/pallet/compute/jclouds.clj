@@ -654,7 +654,8 @@
  (defn credentials-provider [injector]
    (.getInstance injector
                  (com.google.inject.Key/get
-                  pallet.jclouds.Tokens/CREDENTIALS_SUPPLIER)))
+                  pallet.jclouds.Tokens/CREDENTIALS_SUPPLIER
+                  org.jclouds.location.Provider)))
  (defn credentials-provider [injector]
    (.getInstance injector
                  (com.google.inject.Key/get
