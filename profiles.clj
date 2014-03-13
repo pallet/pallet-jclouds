@@ -13,10 +13,10 @@
  :no-checkouts {:checkout-shares ^:replace []} ; disable checkouts
  :doc {:dependencies [[com.palletops/pallet-codox "0.1.0"]]
        :codox {:writer codox-md.writer/write-docs
-               :output-dir "doc/api/1.5"
+               :output-dir "doc/api/1.7"
                :src-dir-uri "https://github.com/pallet/pallet-repl/blob/develop"
                :src-linenum-anchor-prefix "L"}
-       :aliases {"marg" ["marg" "-d" "doc/source/1.5"]
+       :aliases {"marg" ["marg" "-d" "doc/source/1.7"]
                  "codox" ["doc"]
                  "doc" ["do" "codox," "marg"]}} :release
  {:plugins [[lein-set-version "0.3.0"]]
