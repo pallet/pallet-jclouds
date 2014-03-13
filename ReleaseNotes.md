@@ -1,5 +1,9 @@
 # Release Notes
 
+# 1.7.0
+
+- Update to jclouds 1.7.1
+
 # 1.5.4
 
 - Update to pallet 0.8.0-RC.8

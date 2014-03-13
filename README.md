@@ -40,11 +40,14 @@ jclouds 1.4.x
 jclouds 1.5.x
 : pallet-jclouds-1.5.4 (jclouds 1.5.5)
 
+jclouds 1.7.x
+: pallet-jclouds-1.7.0-alpha.1 (jclouds 1.7.1)
+
 ### lein project.clj
 
 ```clojure
-:dependencies [[com.palletops/pallet "0.8.0-beta.10"]
-               [com.palletops/pallet-jclouds "1.5.4"]]
+:dependencies [[com.palletops/pallet "0.8.0-RC.8"]
+               [com.palletops/pallet-jclouds "1.7.0-alpha.1"]]
 ```
 
 ### maven pom.xml
@@ -54,12 +57,12 @@ jclouds 1.5.x
   <dependency>
     <groupId>com.palletops</groupId>
     <artifactId>pallet</artifactId>
-    <version>0.8.0-beta.10</version>
+    <version>0.8.0-RC.8</version>
   </dependency>
   <dependency>
     <groupId>com.palletops</groupId>
     <artifactId>pallet-jclouds</artifactId>
-    <version>1.5.4</version>
+    <version>1.7.0-alpha.1</version>
   </dependency>
 <dependencies>
 
@@ -73,7 +76,7 @@ jclouds 1.5.x
 
 ## Using other jclouds versions
 
-To uses a different minor version, say 1.5.7, you can use the nearest matching
+To uses a different minor version, say 1.7.0, you can use the nearest matching
 pallet-jclouds version, add exclusions for the default jclouds version in that
 release, and add jclouds dependencies for the jclouds version you would like.
 
@@ -83,7 +86,7 @@ Licensed under [EPL](http://www.eclipse.org/legal/epl-v10.html)
 
 [Contributors](https://www.ohloh.net/p/pallet-clj/contributors)
 
-Copyright 2010, 2011, 2012  Hugo Duncan.
+Copyright 2010, 2011, 2012, 2013 Hugo Duncan.
 
 
 [palletops]: http://palletops.com "Pallet site"
