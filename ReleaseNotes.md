@@ -1,5 +1,26 @@
 # Release Notes
 
+# 1.5.4
+
+- Update to pallet 0.8.0-RC.8
+
+- Return nil if p.compute/packager-for-os throws
+  When looking up the packager for a node, return nil if the underlying
+  packager-for-os call throws.
+
+- Remove usage of deprecated jclouds method
+  The ComputeServiceUtils/getSupportedProviders class method is deprecated
+  and has been removed in jclouds/jclouds@dc4ca1efbd (which is in the 1.6.0
+  branch).
+
+  This commit changes pallet.compute.jclouds/supported-providers to do what
+  ComputeServiceUtils/getSupportedProviders and
+  org.jclouds.rest.providers.Providers/getSupportedProvidersOfType used to
+  do.
+
+  Manual testing verified that for the current classpath, the old and new
+  implementations of the method both return the same set.
+
 # 1.5.3
 
 - Use lein and publish to com.palletops on clojars
