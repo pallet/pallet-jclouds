@@ -4,7 +4,7 @@
    [clojure.reflect :only [reflect]]
    [clojure.stacktrace :only [root-cause]]
    [clojure.string :only [lower-case]]
-   [clojure.tools.logging :only [debugf warnf]])
+   [clojure.tools.logging :only [debugf tracef warnf]])
   (:require
    [org.jclouds.compute2 :as jclouds]
    [pallet.compute.implementation :as implementation]
@@ -19,7 +19,7 @@
    [clojure.tools.logging :as logging])
   (:import
    [org.jclouds.compute.domain.internal HardwareImpl ImageImpl NodeMetadataImpl]
-   org.jclouds.compute.util.ComputeServiceUtils
+   org.jclouds.compute.ComputeServiceContext
    org.jclouds.compute.ComputeService
    org.jclouds.compute.options.RunScriptOptions
    org.jclouds.compute.options.TemplateOptions
@@ -57,7 +57,11 @@
 
 ;;; Meta
 (defn supported-providers []
-  (ComputeServiceUtils/getSupportedProviders))
+  (set
+   (map #(.getId %)
+        (concat
+         (org.jclouds.apis.Apis/viewableAs ComputeServiceContext)
+         (org.jclouds.providers.Providers/viewableAs ComputeServiceContext)))))
 
 ;;;; Compute service
 (defn default-jclouds-extensions
@@ -324,7 +328,11 @@
   (extend-type JcloudsNode
     pallet.node/NodePackager
     (packager [n]
-      (compute/packager-for-os (node/os-family n) (node/os-version n)))))
+      (try
+        (compute/packager-for-os (node/os-family n) (node/os-version n))
+        (catch Exception e
+          (tracef e "Failed to determine packager for node")
+          (debugf "Failed to determine packager for node"))))))
 
 (when-feature node-image
   (extend-type JcloudsNode
