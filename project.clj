@@ -1,5 +1,5 @@
 (def clojure-ver "1.4.0")
-(def pallet-ver "0.8.0-beta.10")
+(def pallet-ver "0.8.0-RC.8")
 (def jclouds-ver "1.5.5")
 
 (defproject com.palletops/pallet-jclouds "1.5.4-SNAPSHOT"

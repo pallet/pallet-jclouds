@@ -1,7 +1,7 @@
 {:dev {:dependencies
        [[org.clojure/clojure "1.4.0"]
-        [com.palletops/pallet "0.8.0-beta.10"]
-        [com.palletops/pallet "0.8.0-beta.10" :classifier "tests"]
+        [com.palletops/pallet "0.8.0-RC.8"]
+        [com.palletops/pallet "0.8.0-RC.8" :classifier "tests"]
         [ch.qos.logback/logback-classic "1.0.9"]
 
         [org.jclouds/jclouds-all "1.5.5"]

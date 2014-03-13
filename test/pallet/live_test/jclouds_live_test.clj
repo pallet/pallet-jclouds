@@ -7,7 +7,9 @@
    [pallet.live-test :as live-test]
    [pallet.core :as core]
    [pallet.common.logging.logutils :as logutils]
-   [pallet.compute :as compute]))
+   [pallet.compute :as compute]
+   [pallet.core.user :refer [*admin-user*]]
+   [pallet.test-utils :as test-utils]))
 
 (use-fixtures :once (logutils/logging-threshold-fixture))
 
@@ -23,7 +25,10 @@
 
 (deftest live-test-test
   (let [compute (compute/instantiate-provider
-                 "stub" :identity "x" :credential "x")]
+                 "stub" :identity "x" :credential "x"
+                 :environment {:user (assoc *admin-user*
+                                       :username (test-utils/test-username)
+                                       :no-sudo true)})]
     (purge-compute-service compute)
     (live-test/set-service! compute)
     (testing "without prefix"
