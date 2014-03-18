@@ -1,6 +1,10 @@
-# Release Notes
+## 1.7.0-alpha.2
 
-# 1.7.0
+- Use clj-jclouds
+  Instead of using jclouds own clojure code, depend on clj-jclouds which can
+  be updated independently of the jclouds version.
+
+# 1.7.0-alpha.1
 
 - Update to jclouds 1.7.1
 
