@@ -1,5 +1,7 @@
 # pallet-jclouds
 
+[![Build Status](https://travis-ci.org/pallet/pallet-jclouds.png?branch=develop)](https://travis-ci.org/pallet/pallet-jclouds)
+
 A provider for [Pallet][palletops], to use [jclouds][jclouds] to access many clouds.
 
 ## Pallet
