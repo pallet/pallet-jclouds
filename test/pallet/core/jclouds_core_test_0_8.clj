@@ -1,5 +1,6 @@
 (ns pallet.core.jclouds-core-test
   (:require
+   [com.palletops.jclouds.compute2 :as compute2]
    [pallet.action :as action]
    [pallet.build-actions :as build-actions]
    [pallet.common.logging.logutils :as logutils]
@@ -66,7 +67,7 @@
   (testing "destroy-server and destroy-group phases"
     (jclouds-test-utils/purge-compute-service)
     (let [service (jclouds-test-utils/compute)
-          a-node (org.jclouds.compute2/create-node (.compute service) "aaa")
+          a-node (compute2/create-node (.compute service) "aaa")
           nodes (compute/nodes service)
           node (first nodes)
           [action seen?] (seen-fn "destroy-server")
@@ -96,8 +97,8 @@
   (testing "destroy-server phase"
     (jclouds-test-utils/purge-compute-service)
     (let [service (jclouds-test-utils/compute)
-          a-node (org.jclouds.compute2/create-node (.compute service) "aaa")
-          a2-node (org.jclouds.compute2/create-node (.compute service) "aaa")
+          a-node (compute2/create-node (.compute service) "aaa")
+          a2-node (compute2/create-node (.compute service) "aaa")
           nodes (compute/nodes service)
           node (first nodes)
           [action seen?] (seen-fn "destroy-server")

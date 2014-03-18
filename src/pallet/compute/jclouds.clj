@@ -6,7 +6,7 @@
    [clojure.string :only [lower-case]]
    [clojure.tools.logging :only [debugf tracef warnf]])
   (:require
-   [org.jclouds.compute2 :as jclouds]
+   [com.palletops.jclouds.compute2 :as jclouds]
    [pallet.compute.implementation :as implementation]
    [pallet.compute.jvm :as jvm]
    [pallet.compute :as compute]
@@ -461,7 +461,7 @@
                                   dissoc %
                                   (remove
                                    (fn [kw] (= :image-id kw))
-                                   (keys @#'org.jclouds.compute2/template-map)))
+                                   (keys @#'jclouds/template-map)))
                                  %))
         options (->> [:image :hardware :location :network :qos]
                      (select-keys group-spec)
