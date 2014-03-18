@@ -1,12 +1,12 @@
 language: clojure
 lein: lein2
 before_script:
-  - lein2 version
-  - ssh-keygen -N "" -f ~/.ssh/id_rsa
-  - cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+- lein2 version
+- ssh-keygen -N "" -f ~/.ssh/id_rsa
+- cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 script: lein2 test
 env:
   global:
-    secure: gWpJB4ocJ3wPqcV+X38ZkCjvuVwJbK9/I49AuxwahR7ICeMHNdxyz/XNyo83aC0rP/E/B9gi0wnSThPeC8GK4XFgE0I9rLxEIiz+egBg6S8lECLXxFIjjdOCipSykmRA+UHR9AVZhmILyGHR5UJWebzUXQF2uoVn0ZvrTbGWDBw=
+    secure: IUj/Jo2tUSLJi4Z0l3Vokk9EDegkiceYCRQ4ecLlYcDXsfxbYrDzcxCWwtnCQeCauJrIWGtZjUbNtfdTzkDeKAIgM2mv2lV3dPnfwyZEwNvCPJ8aCbZp8M9m5HBdqs39oUvVY/3reGiDj6Tb7MgCMGaoOY/KyLwUTpKdppxzR6E=
 after_success:
 - bash .travis/after_success
