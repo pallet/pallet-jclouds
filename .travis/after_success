@@ -19,6 +19,8 @@ if echo $branch | egrep '^release/.*' > /dev/null; then
     https://pbors:${GH_TOKEN}@github.com/pallet/pallet-jclouds.git
   echo "Pushing to master"
   git push github HEAD:master 2>&1 | egrep -v github || exit 1
+  # make sure we don't proceed if the push fails
+  git push github HEAD:master > /dev/null 2>&1  || exit 1
   echo "Tagging"
   git tag $release || exit 1
   echo "Pushing tags"
