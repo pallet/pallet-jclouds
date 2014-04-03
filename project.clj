@@ -4,7 +4,7 @@
 
 (defproject com.palletops/pallet-jclouds "1.7.0-SNAPSHOT"
   :description "A pallet provider for using jclouds."
-  :url "https://github.com/pallet/pallet-vmfest"
+  :url "https://github.com/pallet/pallet-jclouds"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 

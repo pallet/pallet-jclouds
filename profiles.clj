@@ -10,7 +10,10 @@
 
        :plugins [[codox/codox.leiningen "0.6.4"]
                  [lein-marginalia "0.7.1"]
-                 [lein-set-version "0.4.1"]]}
+                 [lein-pallet-release "0.1.4"]]
+       :pallet-release
+       {:url "https://pbors:${GH_TOKEN}@github.com/pallet/pallet-jclouds.git",
+        :branch "master"}}
  :no-checkouts {:checkout-shares ^:replace []} ; disable checkouts
  :doc {:dependencies [[com.palletops/pallet-codox "0.1.0"]]
        :codox {:writer codox-md.writer/write-docs
