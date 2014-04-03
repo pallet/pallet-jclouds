@@ -1,3 +1,9 @@
+## 1.7.0-alpha.3
+
+- Update to clj-jclouds 1.1 for compat with clojure 1.2
+
+- Remove use of clojure/reflect for compat with clj 1.2
+
 ## 1.7.0-alpha.2
 
 - Use clj-jclouds

@@ -43,13 +43,13 @@ jclouds 1.5.x
 : pallet-jclouds-1.5.4 (jclouds 1.5.5)
 
 jclouds 1.7.x
-: pallet-jclouds-1.7.0-alpha.2 (jclouds 1.7.1)
+: pallet-jclouds-1.7.0-alpha.3 (jclouds 1.7.1)
 
 ### lein project.clj
 
 ```clojure
 :dependencies [[com.palletops/pallet "0.8.0-RC.8"]
-               [com.palletops/pallet-jclouds "1.7.0-alpha.2"]]
+               [com.palletops/pallet-jclouds "1.7.0-alpha.3"]]
 ```
 
 ### maven pom.xml
@@ -64,7 +64,7 @@ jclouds 1.7.x
   <dependency>
     <groupId>com.palletops</groupId>
     <artifactId>pallet-jclouds</artifactId>
-    <version>1.7.0-alpha.2</version>
+    <version>1.7.0-alpha.3</version>
   </dependency>
 <dependencies>
 
