@@ -1,7 +1,6 @@
 (ns pallet.compute.jclouds
   "jclouds compute service implementation."
   (:use
-   [clojure.reflect :only [reflect]]
    [clojure.stacktrace :only [root-cause]]
    [clojure.string :only [lower-case]]
    [clojure.tools.logging :only [debugf tracef warnf]])
@@ -685,12 +684,6 @@
 (defn local-resource-id [node]
   (let [id (.getId node)]
     (subs id (inc (.indexOf id "/")))))
-
-(defn member-with-name [obj member-name]
-  (->> (reflect obj)
-       :members
-       (filter #(= (:name %) name))
-       first))
 
 (defmacro add-node-tag []
   (if (has-feature? taggable-nodes)
