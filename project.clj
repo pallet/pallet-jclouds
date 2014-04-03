@@ -11,7 +11,7 @@
   :java-source-paths ["src"]
   :dependencies [[org.clojure/clojure ~clojure-ver :scope "provided"]
                  [com.palletops/pallet ~pallet-ver :scope "provided"]
-                 [com.palletops/clj-jclouds "0.1.0"]
+                 [com.palletops/clj-jclouds "0.1.1"]
                  [org.apache.jclouds/jclouds-compute ~jclouds-ver]
                  [org.apache.jclouds/jclouds-blobstore ~jclouds-ver]]
 
