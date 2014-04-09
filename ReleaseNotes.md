@@ -1,3 +1,7 @@
+## 1.7.0
+
+- No changes since 1.7.0-alpha.3
+
 ## 1.7.0-alpha.3
 
 - Update to clj-jclouds 1.1 for compat with clojure 1.2
