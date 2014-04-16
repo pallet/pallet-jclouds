@@ -1,3 +1,7 @@
+## 1.7.1
+
+- Add compatibility with jdk 1.6
+
 ## 1.7.0
 
 - No changes since 1.7.0-alpha.3
