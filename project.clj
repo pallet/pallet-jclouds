@@ -9,6 +9,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :java-source-paths ["src"]
+  :javac-options ["-target" "1.6" "-source" "1.6" "-Xlint:-options"]
   :dependencies [[org.clojure/clojure ~clojure-ver :scope "provided"]
                  [com.palletops/pallet ~pallet-ver :scope "provided"]
                  [com.palletops/clj-jclouds "0.1.1"]
@@ -18,7 +19,6 @@
   ;; You will need the jclouds provider specific jars for your project
   ;; The simplest is to pull in everything, but you can use individual
   ;; provider dependencies.
-
   :classifiers {:all {:dependencies
                       [[org.apache.jclouds/jclouds-all ~jclouds-ver]
                        [org.apache.jclouds.driver/jclouds-sshj ~jclouds-ver]
