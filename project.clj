@@ -1,8 +1,8 @@
 (def clojure-ver "1.4.0")
 (def pallet-ver "0.8.0-RC.8")
-(def jclouds-ver "1.7.1")
+(def jclouds-ver "1.7.2-SNAPSHOT")
 
-(defproject com.palletops/pallet-jclouds "1.7.1-SNAPSHOT"
+(defproject com.palletops/pallet-jclouds "1.7.1"
   :description "A pallet provider for using jclouds."
   :url "https://github.com/pallet/pallet-jclouds"
   :license {:name "Eclipse Public License"
