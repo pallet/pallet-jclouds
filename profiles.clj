@@ -10,19 +10,9 @@
 
        :plugins [[codox/codox.leiningen "0.6.4"]
                  [lein-marginalia "0.7.1"]
-                 [lein-pallet-release "0.1.4"]]
+                 [lein-pallet-release "RELEASE"]]
        :pallet-release
        {:url "https://pbors:${GH_TOKEN}@github.com/pallet/pallet-jclouds.git",
         :branch "master"}}
  :no-checkouts {:checkout-shares ^:replace []} ; disable checkouts
- :doc {:dependencies [[com.palletops/pallet-codox "0.1.0"]]
-       :codox {:writer codox-md.writer/write-docs
-               :output-dir "doc/api/1.7"
-               :src-dir-uri "https://github.com/pallet/pallet-repl/blob/develop"
-               :src-linenum-anchor-prefix "L"}
-       :aliases {"marg" ["marg" "-d" "doc/source/1.7"]
-                 "codox" ["doc"]
-                 "doc" ["do" "codox," "marg"]}}
- :release
- {:set-version
-  {:updates [{:path "README.md" :no-snapshot true}]}}}
+ }
