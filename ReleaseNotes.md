@@ -1,3 +1,18 @@
+## 1.7.2
+
+- Update to jclouds 1.7.2 as default
+
+- Make dep on lein-pallet-release to RELEASE and remove old automation from
+  profile.clj.
+
+- Update .gitignore with newly generated files.
+
+- Fix version numbering changes made by lein-pallet-release.
+
+- Remove checking for creds. provider. No backwards support for jclouds 1.6-.
+
+- Fix credentials value in service-properties. Closes #7.
+
 ## 1.7.1
 
 - Add compatibility with jdk 1.6
