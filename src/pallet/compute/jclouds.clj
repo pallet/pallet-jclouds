@@ -666,9 +666,11 @@
     "Return a map with the service details"
     [^org.jclouds.compute.ComputeService compute-service provider-kw]
     (let [context (.. compute-service getContext unwrap)
-          credential (credentials-provider (.. context utils injector))]
+          credentials (.. (credentials-provider (.. context utils injector)) get)
+          credential (.credential credentials)
+          identity (.identity credentials)]
       {:provider provider-kw
-       :identity (.getIdentity context)
+       :identity identity
        :credential credential
        :endpoint (.. context getProviderMetadata getEndpoint)}))
 
