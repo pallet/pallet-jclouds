@@ -1,6 +1,6 @@
 (def clojure-ver "1.4.0")
 (def pallet-ver "0.8.0-RC.8")
-(def jclouds-ver "1.7.2")
+(def jclouds-ver "1.7.3-SNAPSHOT")
 
 (defproject com.palletops/pallet-jclouds "1.7.2"
   :description "A pallet provider for using jclouds."
