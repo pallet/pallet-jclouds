@@ -43,13 +43,13 @@ jclouds 1.5.x
 : pallet-jclouds-1.5.4 (jclouds 1.5.5)
 
 jclouds 1.7.x
-: pallet-jclouds-1.7.2 (jclouds 1.7.2)
+: pallet-jclouds-1.7.3 (jclouds 1.7.2)
 
 ### lein project.clj
 
 ```clojure
 :dependencies [[com.palletops/pallet "0.8.0-RC.8"]
-               [com.palletops/pallet-jclouds "1.7.2"]]
+               [com.palletops/pallet-jclouds "1.7.3"]]
 ```
 
 ### maven pom.xml
@@ -64,7 +64,7 @@ jclouds 1.7.x
   <dependency>
     <groupId>com.palletops</groupId>
     <artifactId>pallet-jclouds</artifactId>
-    <version>1.7.2</version>
+    <version>1.7.3</version>
   </dependency>
 <dependencies>
 
@@ -78,7 +78,7 @@ jclouds 1.7.x
 
 ## Using other jclouds versions
 
-To uses a different minor version, say 1.7.3, you can use the nearest matching
+To use a different minor version of jclouds, say 1.7.3, you can use the nearest matching
 pallet-jclouds version, add exclusions for the default jclouds version in that
 release, and add jclouds dependencies for the jclouds version you would like.
 

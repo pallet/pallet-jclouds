@@ -1,3 +1,7 @@
+## 1.7.3
+
+- Re-release of 1.7.2 which didn't include all the commits.
+
 ## 1.7.2
 
 - Update to jclouds 1.7.2 as default
