@@ -1,8 +1,8 @@
 (def clojure-ver "1.4.0")
-(def pallet-ver "0.8.0-RC.8")
+(def pallet-ver "0.9.0-SNAPSHOT")
 (def jclouds-ver "1.7.2")
 
-(defproject com.palletops/pallet-jclouds "1.7.4-SNAPSHOT"
+(defproject com.palletops/pallet-jclouds "0.9.0-SNAPSHOT"
   :description "A pallet provider for using jclouds."
   :url "https://github.com/pallet/pallet-jclouds"
   :license {:name "Eclipse Public License"
@@ -12,7 +12,7 @@
   :javac-options ["-target" "1.6" "-source" "1.6" "-Xlint:-options"]
   :dependencies [[org.clojure/clojure ~clojure-ver :scope "provided"]
                  [com.palletops/pallet ~pallet-ver :scope "provided"]
-                 [com.palletops/clj-jclouds "0.1.1"]
+                 [com.palletops/clj-jclouds "0.1.2-SNAPSHOT"]
                  [org.apache.jclouds/jclouds-compute ~jclouds-ver]
                  [org.apache.jclouds/jclouds-blobstore ~jclouds-ver]]
 
